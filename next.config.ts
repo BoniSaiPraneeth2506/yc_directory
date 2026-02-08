@@ -5,9 +5,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint:{
-      ignoreDuringBuilds: true,
-  },
+  images: {
     remotePatterns: [
       {
         protocol: "https",
@@ -15,7 +13,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  cacheComponents: true,
+  // cacheComponents: true, // Disabled: causes issues with auth() and dynamic routes
   devIndicators: {
     // appIsrStatus: true,
     // buildActivity: true,

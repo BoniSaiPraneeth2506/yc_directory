@@ -7,11 +7,10 @@ import UserStartups from "@/components/UserStartups";
 import { Suspense } from "react";
 import { StartupCardSkeleton } from "@/components/StartupCard";
 
-const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
-  const id = (await params).id;
+async function UserProfile({ id }: { id: string }) {
   const session = await auth();
-
   const user = await client.fetch(AUTHOR_BY_ID_QUERY, { id });
+  
   if (!user) return notFound();
   
   console.log("👤 User profile data:", user);
@@ -54,6 +53,16 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
         </div>
       </section>
     </>
+  );
+}
+
+const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const id = (await params).id;
+  
+  return (
+    <Suspense fallback={<div className="profile_container">Loading...</div>}>
+      <UserProfile id={id} />
+    </Suspense>
   );
 };
 
