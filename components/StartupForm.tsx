@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useActionState } from "react";
+import React, { useState, useActionState, useEffect, useCallback } from "react";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import MDEditor from "@uiw/react-md-editor";
 import { Button } from "./ui/button";
-import { Send } from "lucide-react";
+import { Send, Save, Calendar } from "lucide-react";
 import { formSchema } from "@/lib/validation";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -23,6 +23,8 @@ interface StartupFormProps {
     image: string;
     pitch: string;
     tags?: string[];
+    isDraft?: boolean;
+    scheduledFor?: string;
   };
 }
 
@@ -30,8 +32,63 @@ const StartupForm = ({ startup }: StartupFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [pitch, setPitch] = useState(startup?.pitch || "");
   const [tags, setTags] = useState<string[]>(startup?.tags || []);
+  const [isDraft, setIsDraft] = useState(startup?.isDraft || false);
+  const [scheduledFor, setScheduledFor] = useState(startup?.scheduledFor || "");
+  const [showSchedule, setShowSchedule] = useState(!!startup?.scheduledFor);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
   const router = useRouter();
   const isEditing = !!startup;
+
+  // Auto-save for drafts every 30 seconds
+  const autoSave = useCallback(async () => {
+    if (!isEditing || !isDraft) return;
+
+    const form = document.querySelector("form") as HTMLFormElement;
+    if (!form) return;
+
+    const formData = new FormData(form);
+    
+    try {
+      setIsAutoSaving(true);
+      
+      const formValues = {
+        title: formData.get("title") as string,
+        description: formData.get("description") as string,
+        category: formData.get("category") as string,
+        link: formData.get("link") as string,
+        pitch,
+      };
+
+      // Validate before auto-saving
+      await formSchema.parseAsync(formValues);
+
+      await updatePitch(
+        {},
+        formData,
+        pitch,
+        startup!._id,
+        tags,
+        true,
+        scheduledFor || undefined
+      );
+
+      setLastSaved(new Date());
+    } catch (error) {
+      // Silently fail auto-save to not interrupt user
+      console.error("Auto-save failed:", error);
+    } finally {
+      setIsAutoSaving(false);
+    }
+  }, [isEditing, isDraft, pitch, tags, scheduledFor, startup]);
+
+  useEffect(() => {
+    if (!isEditing || !isDraft) return;
+
+    const interval = setInterval(autoSave, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [autoSave, isEditing, isDraft]);
 
   const handleFormSubmit = async (prevState: any, formData: FormData) => {
     try {
@@ -46,17 +103,38 @@ const StartupForm = ({ startup }: StartupFormProps) => {
       await formSchema.parseAsync(formValues);
 
       const result = isEditing
-        ? await updatePitch(prevState, formData, pitch, startup!._id, tags)
-        : await createPitch(prevState, formData, pitch, tags);
+        ? await updatePitch(
+            prevState,
+            formData,
+            pitch,
+            startup!._id,
+            tags,
+            isDraft,
+            scheduledFor || undefined
+          )
+        : await createPitch(
+            prevState,
+            formData,
+            pitch,
+            tags,
+            isDraft,
+            scheduledFor || undefined
+          );
 
       if (result.status == "SUCCESS") {
         toast.success("Success", {
-          description: isEditing
-            ? "Your startup pitch has been updated successfully"
-            : "Your startup pitch has been created successfully",
+          description: isDraft
+            ? "Your draft has been saved successfully"
+            : isEditing
+              ? "Your startup pitch has been updated successfully"
+              : "Your startup pitch has been created successfully",
         });
 
-        router.push(`/startup/${isEditing ? startup!._id : result._id}`);
+        if (isDraft) {
+          router.push(`/user/${(result as any).author?._ref || ""}`);
+        } else {
+          router.push(`/startup/${isEditing ? startup!._id : result._id}`);
+        }
         router.refresh();
       }
 
@@ -93,6 +171,16 @@ const StartupForm = ({ startup }: StartupFormProps) => {
 
   return (
     <form action={formAction} className="startup-form">
+      {isAutoSaving && (
+        <div className="mb-4 text-sm text-gray-500">
+          Auto-saving draft...
+        </div>
+      )}
+      {lastSaved && (
+        <div className="mb-4 text-sm text-gray-500">
+          Last saved: {lastSaved.toLocaleTimeString()}
+        </div>
+      )}
       <div>
         <label htmlFor="title" className="startup-form_label">
           Title
@@ -184,20 +272,63 @@ const StartupForm = ({ startup }: StartupFormProps) => {
         {errors.pitch && <p className="startup-form_error">{errors.pitch}</p>}
       </div>
 
-      <Button
-        type="submit"
-        className="startup-form_btn text-white"
-        disabled={isPending}
-      >
-        {isPending
-          ? isEditing
-            ? "Updating..."
-            : "Submitting..."
-          : isEditing
-            ? "Update Your Pitch"
-            : "Submit Your Pitch"}
-        <Send className="size-6 ml-2" />
-      </Button>
+      {/* Schedule Publishing */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <input
+            type="checkbox"
+            id="showSchedule"
+            checked={showSchedule}
+            onChange={(e) => {
+              setShowSchedule(e.target.checked);
+              if (!e.target.checked) setScheduledFor("");
+            }}
+            className="size-4"
+          />
+          <label htmlFor="showSchedule" className="startup-form_label !mb-0">
+            Schedule for later
+          </label>
+        </div>
+        
+        {showSchedule && (
+          <Input
+            type="datetime-local"
+            value={scheduledFor}
+            onChange={(e) => setScheduledFor(e.target.value)}
+            min={new Date().toISOString().slice(0, 16)}
+            className="startup-form_input"
+          />
+        )}
+      </div>
+
+      <div className="flex gap-3 flex-wrap">
+        <Button
+          type="submit"
+          onClick={() => setIsDraft(false)}
+          className="startup-form_btn text-white"
+          disabled={isPending}
+        >
+          {isPending
+            ? isEditing
+              ? "Updating..."
+              : "Publishing..."
+            : isEditing
+              ? "Update & Publish"
+              : "Publish Your Pitch"}
+          <Send className="size-6 ml-2" />
+        </Button>
+
+        <Button
+          type="submit"
+          onClick={() => setIsDraft(true)}
+          variant="outline"
+          className="startup-form_btn"
+          disabled={isPending}
+        >
+          {isPending ? "Saving..." : "Save as Draft"}
+          <Save className="size-6 ml-2" />
+        </Button>
+      </div>
     </form>
   );
 };

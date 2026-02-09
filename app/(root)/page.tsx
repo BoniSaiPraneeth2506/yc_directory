@@ -2,14 +2,18 @@
 import SearchForm from "@/components/SearchForm";
 import StartupCard, { StartupTypeCard } from "@/components/StartupCard";
 import {
-  STARTUPS_QUERY,
-  STARTUPS_BY_VIEWS_QUERY,
-  STARTUPS_BY_UPVOTES_QUERY,
-  STARTUPS_BY_TAG_QUERY,
+  STARTUPS_QUERY_PAGINATED,
+  STARTUPS_BY_VIEWS_QUERY_PAGINATED,
+  STARTUPS_BY_UPVOTES_QUERY_PAGINATED,
+  STARTUPS_BY_TAG_QUERY_PAGINATED,
 } from "@/sanityio/lib/queries";
 import { sanityFetch, SanityLive } from "@/sanityio/lib/live";
 import { auth } from "@/auth";
 import { SortSelect } from "@/components/SortSelect";
+import { InfiniteScroll } from "@/components/InfiniteScroll";
+import { BackToTop } from "@/components/BackToTop";
+
+const PAGE_SIZE = 12;
 
 export default async function Home({
   searchParams,
@@ -28,20 +32,22 @@ export default async function Home({
   
   const session = await auth();
 
-  // Build params for query
+  // Build params for query with pagination
   const params: any = { 
     search: searchQuery || null, 
     tag: tag || null,
+    offset: 0,
+    limit: PAGE_SIZE,
   };
 
   // Select query based on filters/sort
-  let query = STARTUPS_QUERY;
+  let query = STARTUPS_QUERY_PAGINATED;
   if (tag) {
-    query = STARTUPS_BY_TAG_QUERY;
+    query = STARTUPS_BY_TAG_QUERY_PAGINATED;
   } else if (sort === "views") {
-    query = STARTUPS_BY_VIEWS_QUERY;
+    query = STARTUPS_BY_VIEWS_QUERY_PAGINATED;
   } else if (sort === "upvotes") {
-    query = STARTUPS_BY_UPVOTES_QUERY;
+    query = STARTUPS_BY_UPVOTES_QUERY_PAGINATED;
   }
 
   const { data: posts } = await sanityFetch({ query, params });
@@ -74,17 +80,10 @@ export default async function Home({
           <SortSelect />
         </div>
 
-        <ul className="mt-7 card_grid">
-          {posts?.length > 0 ? (
-            posts.map((post: StartupTypeCard) => (
-              <StartupCard key={post?._id} post={post} />
-            ))
-          ) : (
-            <p className="no-results">No startups found</p>
-          )}
-        </ul>
+        <InfiniteScroll initialPosts={posts || []} />
       </section>
 
+      <BackToTop />
       <SanityLive />
     </>
   );

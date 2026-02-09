@@ -21,6 +21,7 @@ import { BookmarkButton } from "@/components/BookmarkButton";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { TagList } from "@/components/TagBadge";
 import RelatedStartups from "@/components/RelatedStartups";
+import { CommentList } from "@/components/CommentList";
 
 const resolveImageUrl = (url?: string) => {
   if (!url) return "";
@@ -53,6 +54,9 @@ async function StartupDetails({ params }: { params: Promise<{ id: string }> }) {
         )
       : Promise.resolve(null),
   ]);
+
+  console.log("🎯 Editor Playlist fetched:", editorPlaylist);
+  console.log("📚 Editor Posts:", editorPlaylist?.select);
 
   if (!post) return notFound();
 
@@ -175,21 +179,31 @@ async function StartupDetails({ params }: { params: Promise<{ id: string }> }) {
 
         <hr className="divider" />
 
+        {/* Top Picks - Editor's Choice */}
         {editorPosts?.length > 0 && (
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-3 mb-5">
               <h2 className="text-30-semibold">Top Picks</h2>
             </div>
-            <p className="text-14-medium text-gray-600 mb-5">
+            <p className="text-14-medium text-gray-600 dark:text-gray-400 mb-5">
               Handpicked startups from our editors
             </p>
             <ul className="card_grid-sm">
-              {editorPosts.map((post: StartupTypeCard, i: number) => (
-                <StartupCard key={i} post={post} />
+              {editorPosts.filter(Boolean).map((post: StartupTypeCard, i: number) => (
+                <StartupCard key={post._id || i} post={post} />
               ))}
             </ul>
           </div>
         )}
+
+        {editorPosts?.length > 0 && <hr className="divider" />}
+
+        {/* Comment Section */}
+        <div className="max-w-4xl mx-auto">
+          <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+            <CommentList startupId={id} />
+          </Suspense>
+        </div>
 
         <Suspense fallback={<Skeleton className="view_skeleton" />}>
           <View id={id} />

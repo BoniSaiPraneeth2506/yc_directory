@@ -64,5 +64,22 @@ export const startup = defineType({
       },
       validation: (Rule) => Rule.max(5).error("Maximum 5 tags allowed"),
     }),
+    defineField({
+      name: "isDraft",
+      type: "boolean",
+      title: "Draft",
+      initialValue: false,
+    }),
+    defineField({
+      name: "scheduledFor",
+      type: "datetime",
+      title: "Scheduled Publish Date",
+    }),
+    defineField({
+      name: "commentCount",
+      type: "number",
+      title: "Comment Count",
+      initialValue: 0,
+    }),
   ],
 });

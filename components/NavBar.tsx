@@ -3,9 +3,25 @@ import Image from "next/image";
 import { auth, signOut, signIn } from "@/auth";
 import { BadgePlus, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NotificationBell } from "@/components/NotificationBell";
+import { client } from "@/sanityio/lib/client";
+import { UNREAD_NOTIFICATION_COUNT_QUERY } from "@/sanityio/lib/queries";
 
 const Navbar = async () => {
   const session = await auth();
+  
+  let unreadCount = 0;
+  if (session?.id) {
+    try {
+      unreadCount = await client.fetch(
+        UNREAD_NOTIFICATION_COUNT_QUERY,
+        { userId: session.id },
+        { cache: "no-store" }
+      );
+    } catch (error) {
+      console.error("Failed to fetch unread count:", error);
+    }
+  }
 
   return (
     <header className="px-5 py-3 bg-white shadow-sm font-work-sans">
@@ -21,6 +37,8 @@ const Navbar = async () => {
                 <span className="max-sm:hidden">Create</span>
                 <BadgePlus className="size-6 sm:hidden" />
               </Link>
+
+              <NotificationBell initialUnreadCount={unreadCount} />
 
               <form
                 action={async () => {

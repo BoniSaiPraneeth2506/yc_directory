@@ -55,6 +55,33 @@ export const author = defineType({
       of: [{ type: "reference", to: [{ type: "author" }] }],
       title: "Following",
     }),
+    defineField({
+      name: "socialLinks",
+      type: "object",
+      title: "Social Links",
+      fields: [
+        { name: "twitter", type: "url", title: "Twitter" },
+        { name: "linkedin", type: "url", title: "LinkedIn" },
+        { name: "github", type: "url", title: "GitHub" },
+        { name: "website", type: "url", title: "Personal Website" },
+      ],
+    }),
+    defineField({
+      name: "location",
+      type: "string",
+      title: "Location",
+    }),
+    defineField({
+      name: "timezone",
+      type: "string",
+      title: "Timezone",
+    }),
+    defineField({
+      name: "skills",
+      type: "array",
+      of: [{ type: "string" }],
+      title: "Skills/Expertise",
+    }),
   ],
   preview: {
     select: {

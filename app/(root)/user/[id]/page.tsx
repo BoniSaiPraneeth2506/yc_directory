@@ -8,6 +8,8 @@ import { ProfileTabs } from "@/components/ProfileTabs";
 import UserStartups from "@/components/UserStartups";
 import UpvotedStartups from "@/components/UpvotedStartups";
 import SavedStartups from "@/components/SavedStartups";
+import UserDrafts from "@/components/UserDrafts";
+import StatsOverview from "@/components/StatsOverview";
 import FollowersList from "@/components/FollowersList";
 import FollowingList from "@/components/FollowingList";
 import { StartupCardSkeleton } from "@/components/StartupCard";
@@ -96,6 +98,20 @@ async function UserProfile({ id }: { id: string }) {
             <Suspense fallback={<StartupCardSkeleton />}>
               <UserStartups id={id} />
             </Suspense>
+          }
+          draftsContent={
+            isOwnProfile ? (
+              <Suspense fallback={<StartupCardSkeleton />}>
+                <UserDrafts id={id} />
+              </Suspense>
+            ) : null
+          }
+          statsContent={
+            isOwnProfile ? (
+              <Suspense fallback={<div className="text-center">Loading stats...</div>}>
+                <StatsOverview userId={id} />
+              </Suspense>
+            ) : null
           }
           upvotedContent={
             isOwnProfile ? (

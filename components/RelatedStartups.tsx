@@ -12,6 +12,7 @@ interface RelatedStartupsProps {
 const RELATED_STARTUPS_QUERY = `*[_type == "startup" 
   && _id != $currentId 
   && defined(slug.current)
+  && (isDraft != true)
   && (category == $category || count((tags[])[@ in $tags]) > 0)
 ] | order(count((tags[])[@ in $tags]) desc, _createdAt desc) [0...6] {
   _id, 
@@ -54,7 +55,7 @@ const RelatedStartups = async ({
         Similar startups you might be interested in
       </p>
       <ul className="card_grid-sm">
-        {relatedPosts.map((post: StartupTypeCard) => (
+        {relatedPosts.filter(Boolean).map((post: StartupTypeCard) => (
           <StartupCard key={post._id} post={post} />
         ))}
       </ul>

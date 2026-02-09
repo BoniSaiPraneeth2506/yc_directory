@@ -9,7 +9,7 @@ const UpvotedStartups = async ({ id }: { id: string }) => {
   return (
     <>
       {startups?.length > 0 ? (
-        startups.map((startup: StartupTypeCard) => (
+        startups.filter(Boolean).map((startup: StartupTypeCard) => (
           <StartupCard key={startup._id} post={startup} />
         ))
       ) : (

@@ -1,24 +1,28 @@
 "use client";
 
 import { useState, ReactNode } from "react";
-import { FileText, ThumbsUp, Bookmark, Users, UserCheck } from "lucide-react";
+import { FileText, ThumbsUp, Bookmark, Users, UserCheck, FileQuestion, TrendingUp } from "lucide-react";
 
 interface ProfileTabsProps {
   isOwnProfile: boolean;
   postsContent: ReactNode;
   upvotedContent?: ReactNode;
   savedContent?: ReactNode;
+  draftsContent?: ReactNode;
+  statsContent?: ReactNode;
   followersContent: ReactNode;
   followingContent: ReactNode;
 }
 
-type TabType = "posts" | "upvoted" | "saved" | "followers" | "following";
+type TabType = "posts" | "upvoted" | "saved" | "drafts" | "stats" | "followers" | "following";
 
 export function ProfileTabs({ 
   isOwnProfile, 
   postsContent, 
   upvotedContent, 
   savedContent,
+  draftsContent,
+  statsContent,
   followersContent,
   followingContent,
 }: ProfileTabsProps) {
@@ -30,6 +34,18 @@ export function ProfileTabs({
       label: isOwnProfile ? "Your Posts" : "All Posts", 
       icon: FileText,
       show: true 
+    },
+    { 
+      id: "drafts" as TabType, 
+      label: "Drafts", 
+      icon: FileQuestion,
+      show: isOwnProfile 
+    },
+    { 
+      id: "stats" as TabType, 
+      label: "Stats", 
+      icon: TrendingUp,
+      show: isOwnProfile 
     },
     { 
       id: "upvoted" as TabType, 
@@ -97,6 +113,18 @@ export function ProfileTabs({
           <ul className="card_grid-sm">
             {savedContent}
           </ul>
+        )}
+
+        {activeTab === "drafts" && isOwnProfile && (
+          <div>
+            {draftsContent}
+          </div>
+        )}
+
+        {activeTab === "stats" && isOwnProfile && (
+          <div>
+            {statsContent}
+          </div>
         )}
 
         {activeTab === "followers" && (
