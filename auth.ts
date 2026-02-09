@@ -6,6 +6,10 @@ import { writeClient } from "@/sanityio/lib/write-client";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [GitHub],
+  pages: {
+    signIn: "/",
+  },
+  trustHost: true, // Required for production deployment
   callbacks: {
     async signIn({
       user: { name, email, image },

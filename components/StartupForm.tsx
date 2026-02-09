@@ -10,12 +10,24 @@ import { formSchema } from "@/lib/validation";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { createPitch } from "@/lib/actions";
+import { createPitch, updatePitch } from "@/lib/actions";
 
-const StartupForm = () => {
+interface StartupFormProps {
+  startup?: {
+    _id: string;
+    title: string;
+    description: string;
+    category: string;
+    image: string;
+    pitch: string;
+  };
+}
+
+const StartupForm = ({ startup }: StartupFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [pitch, setPitch] = useState("");
+  const [pitch, setPitch] = useState(startup?.pitch || "");
   const router = useRouter();
+  const isEditing = !!startup;
 
   const handleFormSubmit = async (prevState: any, formData: FormData) => {
     try {
@@ -29,14 +41,19 @@ const StartupForm = () => {
 
       await formSchema.parseAsync(formValues);
 
-      const result = await createPitch(prevState, formData, pitch);
+      const result = isEditing
+        ? await updatePitch(prevState, formData, pitch, startup!._id)
+        : await createPitch(prevState, formData, pitch);
 
       if (result.status == "SUCCESS") {
         toast.success("Success", {
-          description: "Your startup pitch has been created successfully",
+          description: isEditing
+            ? "Your startup pitch has been updated successfully"
+            : "Your startup pitch has been created successfully",
         });
 
-        router.push(`/startup/${result._id}`);
+        router.push(`/startup/${isEditing ? startup!._id : result._id}`);
+        router.refresh();
       }
 
       return result;
@@ -82,6 +99,7 @@ const StartupForm = () => {
           className="startup-form_input"
           required
           placeholder="Startup Title"
+          defaultValue={startup?.title}
         />
 
         {errors.title && <p className="startup-form_error">{errors.title}</p>}
@@ -96,6 +114,7 @@ const StartupForm = () => {
           name="description"
           className="startup-form_textarea"
           required
+          defaultValue={startup?.description}
           placeholder="Startup Description"
         />
 
@@ -113,6 +132,7 @@ const StartupForm = () => {
           name="category"
           className="startup-form_input"
           required
+          defaultValue={startup?.category}
           placeholder="Startup Category (Tech, Health, Education...)"
         />
 
@@ -129,6 +149,7 @@ const StartupForm = () => {
           id="link"
           name="link"
           className="startup-form_input"
+          defaultValue={startup?.image}
           required
           placeholder="Startup Image URL"
         />
@@ -165,7 +186,13 @@ const StartupForm = () => {
         className="startup-form_btn text-white"
         disabled={isPending}
       >
-        {isPending ? "Submitting..." : "Submit Your Pitch"}
+        {isPending
+          ? isEditing
+            ? "Updating..."
+            : "Submitting..."
+          : isEditing
+            ? "Update Your Pitch"
+            : "Submit Your Pitch"}
         <Send className="size-6 ml-2" />
       </Button>
     </form>

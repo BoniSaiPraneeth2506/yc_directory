@@ -14,6 +14,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import View from "@/components/View";
 import MarkdownIt from "markdown-it";
 import StartupCard, { StartupTypeCard } from "@/components/StartupCard";
+import { auth } from "@/auth";
+import { KebabMenu } from "@/components/KebabMenu";
 
 const resolveImageUrl = (url?: string) => {
   if (!url) return "";
@@ -32,9 +34,10 @@ const resolveImageUrl = (url?: string) => {
 
 async function StartupDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const session = await auth();
 
   const [post, editorPlaylist] = await Promise.all([
-    client.fetch(STARTUP_BY_ID_QUERY, { id }, { cache: "force-cache" }),
+    client.fetch(STARTUP_BY_ID_QUERY, { id }, { cache: "no-store" }),
     client.fetch(PLAYLIST_BY_SLUG_QUERY, {
       slug: "editor-picks",
     }),
@@ -49,10 +52,19 @@ async function StartupDetails({ params }: { params: Promise<{ id: string }> }) {
   const markdown = new MarkdownIt({ html: false, linkify: true, breaks: true });
   const pitchMarkdown =
     typeof pitch === "string" ? markdown.render(pitch) : "";
+  
+  // Check if the logged-in user is the author
+  const isAuthor = session?.id === post.author._id;
 
   return (
     <>
-      <section className="pink_container !min-h-[230px]">
+      <section className="pink_container !min-h-[230px] relative">
+        {isAuthor && (
+          <div className="absolute top-11 right-4 sm:top-10 sm:right-6 z-10">
+            <KebabMenu startupId={id} />
+          </div>
+        )}
+        
         <p className="tag">{formatDate(post?._createdAt)}</p>
 
         <h1 className="heading !max-w-full break-words">{post.title}</h1>
