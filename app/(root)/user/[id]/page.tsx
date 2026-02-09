@@ -8,7 +8,11 @@ import { ProfileTabs } from "@/components/ProfileTabs";
 import UserStartups from "@/components/UserStartups";
 import UpvotedStartups from "@/components/UpvotedStartups";
 import SavedStartups from "@/components/SavedStartups";
+import FollowersList from "@/components/FollowersList";
+import FollowingList from "@/components/FollowingList";
 import { StartupCardSkeleton } from "@/components/StartupCard";
+import { FollowButton } from "@/components/FollowButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 async function UserProfile({ id }: { id: string }) {
   const session = await auth();
@@ -18,6 +22,18 @@ async function UserProfile({ id }: { id: string }) {
   
   const isOwnProfile = session?.id === id;
   
+  // Check if current user is following this profile
+  const currentUserFollowing = session
+    ? await client.fetch(
+        `*[_type == "author" && _id == $id][0].following[]._ref`,
+        { id: session.id }
+      )
+    : [];
+  
+  const isFollowing = currentUserFollowing?.includes(id) || false;
+  const followersCount = user.followers?.length || 0;
+  const followingCount = user.following?.length || 0;
+  
   console.log("👤 User profile data:", user);
   console.log("📸 Image URL:", user.image);
   
@@ -25,6 +41,11 @@ async function UserProfile({ id }: { id: string }) {
     <>
       <section className="profile_container">
         <div className="profile_card">
+          {/* Theme Toggle - Top Right */}
+          <div className="absolute top-4 right-4">
+            <ThemeToggle />
+          </div>
+
           <div className="profile_title">
             <h3 className="text-24-black uppercase text-center line-clamp-1">
               {user.name}
@@ -44,6 +65,29 @@ async function UserProfile({ id }: { id: string }) {
             @{user?.username}
           </p>
           <p className="mt-1 text-center text-14-normal">{user?.bio}</p>
+
+          {/* Follow/Follower Stats */}
+          <div className="flex items-center justify-center gap-6 mt-4">
+            <div className="text-center">
+              <p className="text-20-semibold">{followersCount}</p>
+              <p className="text-14-normal text-gray-600">Followers</p>
+            </div>
+            <div className="text-center">
+              <p className="text-20-semibold">{followingCount}</p>
+              <p className="text-14-normal text-gray-600">Following</p>
+            </div>
+          </div>
+
+          {/* Follow Button */}
+          {!isOwnProfile && session && (
+            <div className="mt-5 flex justify-center">
+              <FollowButton
+                targetUserId={id}
+                initialIsFollowing={isFollowing}
+                initialFollowersCount={followersCount}
+              />
+            </div>
+          )}
         </div>
 
         <ProfileTabs 
@@ -66,6 +110,16 @@ async function UserProfile({ id }: { id: string }) {
                 <SavedStartups id={id} />
               </Suspense>
             ) : null
+          }
+          followersContent={
+            <Suspense fallback={<div className="text-center">Loading...</div>}>
+              <FollowersList id={id} />
+            </Suspense>
+          }
+          followingContent={
+            <Suspense fallback={<div className="text-center">Loading...</div>}>
+              <FollowingList id={id} />
+            </Suspense>
           }
         />
       </section>

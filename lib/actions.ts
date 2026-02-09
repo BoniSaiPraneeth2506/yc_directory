@@ -297,3 +297,72 @@ export const toggleBookmark = async (startupId: string) => {
     });
   }
 };
+
+export const toggleFollow = async (targetUserId: string) => {
+  const session = await auth();
+
+  if (!session)
+    return parseServerActionResponse({
+      error: "Not signed in",
+      status: "ERROR",
+    });
+
+  if (session.id === targetUserId)
+    return parseServerActionResponse({
+      error: "You cannot follow yourself",
+      status: "ERROR",
+    });
+
+  try {
+    // Check if already following
+    const currentUser = await writeClient.fetch(
+      `*[_type == "author" && _id == $id][0]{ following }`,
+      { id: session.id }
+    );
+
+    const isFollowing = currentUser?.following?.some(
+      (ref: any) => ref._ref === targetUserId
+    );
+
+    if (isFollowing) {
+      // Unfollow: Remove from current user's following and target's followers
+      await writeClient
+        .patch(session.id)
+        .unset([`following[_ref=="${targetUserId}"]`])
+        .commit();
+
+      await writeClient
+        .patch(targetUserId)
+        .unset([`followers[_ref=="${session.id}"]`])
+        .commit();
+    } else {
+      // Follow: Add to current user's following and target's followers
+      await writeClient
+        .patch(session.id)
+        .setIfMissing({ following: [] })
+        .append("following", [{ _type: "reference", _ref: targetUserId }])
+        .commit();
+
+      await writeClient
+        .patch(targetUserId)
+        .setIfMissing({ followers: [] })
+        .append("followers", [{ _type: "reference", _ref: session.id }])
+        .commit();
+    }
+
+    revalidatePath(`/user/${targetUserId}`);
+    revalidatePath(`/user/${session.id}`);
+
+    return parseServerActionResponse({
+      error: "",
+      status: "SUCCESS",
+    });
+  } catch (error: any) {
+    console.error("Follow error:", error);
+
+    return parseServerActionResponse({
+      error: error?.message || "Failed to follow",
+      status: "ERROR",
+    });
+  }
+};

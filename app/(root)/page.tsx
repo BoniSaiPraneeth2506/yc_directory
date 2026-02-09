@@ -14,14 +14,27 @@ import { SortSelect } from "@/components/SortSelect";
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ query?: string; sort?: string; tag?: string }>;
+  searchParams: Promise<{ 
+    query?: string; 
+    sort?: string; 
+    tag?: string;
+  }>;
 }) {
-  const { query: searchQuery, sort, tag } = await searchParams;
-  const params = { search: searchQuery || null, tag: tag || null };
-
+  const { 
+    query: searchQuery, 
+    sort, 
+    tag,
+  } = await searchParams;
+  
   const session = await auth();
 
-  // Select query based on sort parameter
+  // Build params for query
+  const params: any = { 
+    search: searchQuery || null, 
+    tag: tag || null,
+  };
+
+  // Select query based on filters/sort
   let query = STARTUPS_QUERY;
   if (tag) {
     query = STARTUPS_BY_TAG_QUERY;

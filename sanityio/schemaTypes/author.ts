@@ -43,6 +43,18 @@ export const author = defineType({
       of: [{ type: "reference", to: [{ type: "startup" }] }],
       title: "Upvoted Startups",
     }),
+    defineField({
+      name: "followers",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "author" }] }],
+      title: "Followers",
+    }),
+    defineField({
+      name: "following",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "author" }] }],
+      title: "Following",
+    }),
   ],
   preview: {
     select: {

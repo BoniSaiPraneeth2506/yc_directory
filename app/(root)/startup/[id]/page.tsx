@@ -20,6 +20,7 @@ import { UpvoteButton } from "@/components/UpvoteButton";
 import { BookmarkButton } from "@/components/BookmarkButton";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { TagList } from "@/components/TagBadge";
+import RelatedStartups from "@/components/RelatedStartups";
 
 const resolveImageUrl = (url?: string) => {
   if (!url) return "";
@@ -163,11 +164,26 @@ async function StartupDetails({ params }: { params: Promise<{ id: string }> }) {
 
         <hr className="divider" />
 
+        {/* Related Startups - Similar posts based on tags/category */}
+        <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+          <RelatedStartups
+            currentId={id}
+            category={post.category}
+            tags={post.tags || []}
+          />
+        </Suspense>
+
+        <hr className="divider" />
+
         {editorPosts?.length > 0 && (
           <div className="max-w-4xl mx-auto">
-            <p className="text-30-semibold">Editor Picks</p>
-
-            <ul className="mt-7 card_grid-sm">
+            <div className="flex items-center gap-3 mb-5">
+              <h2 className="text-30-semibold">Top Picks</h2>
+            </div>
+            <p className="text-14-medium text-gray-600 mb-5">
+              Handpicked startups from our editors
+            </p>
+            <ul className="card_grid-sm">
               {editorPosts.map((post: StartupTypeCard, i: number) => (
                 <StartupCard key={i} post={post} />
               ))}

@@ -4,6 +4,7 @@ import "./globals.css";
 import 'easymde/dist/easymde.min.css'
 import { SanityLive } from "@/sanityio/lib/live";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 
 const workSans = localFont({
@@ -68,11 +69,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={workSans.variable}>
-        {children}
-        <SanityLive />
-        <Toaster/>
+        <ThemeProvider>
+          {children}
+          <SanityLive />
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

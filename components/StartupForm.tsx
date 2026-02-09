@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { createPitch, updatePitch } from "@/lib/actions";
 import { TagInput } from "./TagInput";
+import { ImageUpload } from "./ImageUpload";
 
 interface StartupFormProps {
   startup?: {
@@ -153,17 +154,9 @@ const StartupForm = ({ startup }: StartupFormProps) => {
 
       <div>
         <label htmlFor="link" className="startup-form_label">
-          Image URL
+          Image
         </label>
-        <Input
-          id="link"
-          name="link"
-          className="startup-form_input"
-          defaultValue={startup?.image}
-          required
-          placeholder="Startup Image URL"
-        />
-
+        <ImageUpload name="link" defaultValue={startup?.image} required />
         {errors.link && <p className="startup-form_error">{errors.link}</p>}
       </div>
 

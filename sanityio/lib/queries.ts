@@ -121,7 +121,9 @@ export const AUTHOR_BY_GITHUB_ID_QUERY = defineQuery(`
     image,
     bio,
     savedStartups,
-    upvotedStartups
+    upvotedStartups,
+    followers,
+    following
 }
 `);
 
@@ -135,8 +137,30 @@ export const AUTHOR_BY_ID_QUERY = defineQuery(`
     email,
     savedStartups,
     upvotedStartups,
+    followers,
+    following,
     image,
     bio
+}
+`);
+
+export const FOLLOWERS_BY_AUTHOR_QUERY = defineQuery(`
+*[_type == "author" && _id == $id][0].followers[]-> {
+  _id,
+  name,
+  username,
+  image,
+  bio
+}
+`);
+
+export const FOLLOWING_BY_AUTHOR_QUERY = defineQuery(`
+*[_type == "author" && _id == $id][0].following[]-> {
+  _id,
+  name,
+  username,
+  image,
+  bio
 }
 `);
 

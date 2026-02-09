@@ -1,22 +1,26 @@
 "use client";
 
 import { useState, ReactNode } from "react";
-import { FileText, ThumbsUp, Bookmark } from "lucide-react";
+import { FileText, ThumbsUp, Bookmark, Users, UserCheck } from "lucide-react";
 
 interface ProfileTabsProps {
   isOwnProfile: boolean;
   postsContent: ReactNode;
   upvotedContent?: ReactNode;
   savedContent?: ReactNode;
+  followersContent: ReactNode;
+  followingContent: ReactNode;
 }
 
-type TabType = "posts" | "upvoted" | "saved";
+type TabType = "posts" | "upvoted" | "saved" | "followers" | "following";
 
 export function ProfileTabs({ 
   isOwnProfile, 
   postsContent, 
   upvotedContent, 
-  savedContent 
+  savedContent,
+  followersContent,
+  followingContent,
 }: ProfileTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>("posts");
 
@@ -38,6 +42,18 @@ export function ProfileTabs({
       label: "Saved", 
       icon: Bookmark,
       show: isOwnProfile 
+    },
+    { 
+      id: "followers" as TabType, 
+      label: "Followers", 
+      icon: Users,
+      show: true 
+    },
+    { 
+      id: "following" as TabType, 
+      label: "Following", 
+      icon: UserCheck,
+      show: true 
     },
   ];
 
@@ -81,6 +97,18 @@ export function ProfileTabs({
           <ul className="card_grid-sm">
             {savedContent}
           </ul>
+        )}
+
+        {activeTab === "followers" && (
+          <div>
+            {followersContent}
+          </div>
+        )}
+
+        {activeTab === "following" && (
+          <div>
+            {followingContent}
+          </div>
         )}
       </div>
     </div>
