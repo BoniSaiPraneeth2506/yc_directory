@@ -3,8 +3,11 @@ import { client } from "@/sanityio/lib/client";
 import { AUTHOR_BY_ID_QUERY } from "@/sanityio/lib/queries";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import UserStartups from "@/components/UserStartups";
 import { Suspense } from "react";
+import { ProfileTabs } from "@/components/ProfileTabs";
+import UserStartups from "@/components/UserStartups";
+import UpvotedStartups from "@/components/UpvotedStartups";
+import SavedStartups from "@/components/SavedStartups";
 import { StartupCardSkeleton } from "@/components/StartupCard";
 
 async function UserProfile({ id }: { id: string }) {
@@ -12,6 +15,8 @@ async function UserProfile({ id }: { id: string }) {
   const user = await client.fetch(AUTHOR_BY_ID_QUERY, { id });
   
   if (!user) return notFound();
+  
+  const isOwnProfile = session?.id === id;
   
   console.log("👤 User profile data:", user);
   console.log("📸 Image URL:", user.image);
@@ -41,16 +46,28 @@ async function UserProfile({ id }: { id: string }) {
           <p className="mt-1 text-center text-14-normal">{user?.bio}</p>
         </div>
 
-        <div className="flex-1 flex flex-col gap-5 lg:-mt-5">
-          <p className="text-30-bold">
-            {session?.id === id ? "Your" : "All"} Startups
-          </p>
-          <ul className="card_grid-sm">
+        <ProfileTabs 
+          isOwnProfile={isOwnProfile}
+          postsContent={
             <Suspense fallback={<StartupCardSkeleton />}>
               <UserStartups id={id} />
             </Suspense>
-          </ul>
-        </div>
+          }
+          upvotedContent={
+            isOwnProfile ? (
+              <Suspense fallback={<StartupCardSkeleton />}>
+                <UpvotedStartups id={id} />
+              </Suspense>
+            ) : null
+          }
+          savedContent={
+            isOwnProfile ? (
+              <Suspense fallback={<StartupCardSkeleton />}>
+                <SavedStartups id={id} />
+              </Suspense>
+            ) : null
+          }
+        />
       </section>
     </>
   );

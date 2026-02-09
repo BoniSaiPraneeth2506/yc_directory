@@ -16,6 +16,10 @@ import MarkdownIt from "markdown-it";
 import StartupCard, { StartupTypeCard } from "@/components/StartupCard";
 import { auth } from "@/auth";
 import { KebabMenu } from "@/components/KebabMenu";
+import { UpvoteButton } from "@/components/UpvoteButton";
+import { BookmarkButton } from "@/components/BookmarkButton";
+import { CopyLinkButton } from "@/components/CopyLinkButton";
+import { TagList } from "@/components/TagBadge";
 
 const resolveImageUrl = (url?: string) => {
   if (!url) return "";
@@ -36,11 +40,17 @@ async function StartupDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
 
-  const [post, editorPlaylist] = await Promise.all([
+  const [post, editorPlaylist, userProfile] = await Promise.all([
     client.fetch(STARTUP_BY_ID_QUERY, { id }, { cache: "no-store" }),
     client.fetch(PLAYLIST_BY_SLUG_QUERY, {
       slug: "editor-picks",
     }),
+    session
+      ? client.fetch(
+          `*[_type == "author" && _id == $id][0]{ savedStartups }`,
+          { id: session.id }
+        )
+      : Promise.resolve(null),
   ]);
 
   if (!post) return notFound();
@@ -55,6 +65,14 @@ async function StartupDetails({ params }: { params: Promise<{ id: string }> }) {
   
   // Check if the logged-in user is the author
   const isAuthor = session?.id === post.author._id;
+
+  // Check if user has upvoted or bookmarked
+  const hasUpvoted = session
+    ? post.upvotedBy?.some((ref: any) => ref._ref === session.id)
+    : false;
+  const hasBookmarked = session
+    ? userProfile?.savedStartups?.some((ref: any) => ref._ref === id)
+    : false;
 
   return (
     <>
@@ -103,6 +121,27 @@ async function StartupDetails({ params }: { params: Promise<{ id: string }> }) {
             </Link>
 
             <p className="category-tag">{post.category}</p>
+          </div>
+
+          {/* Tags Display */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="mb-5">
+              <TagList tags={post.tags} />
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-3 mb-5">
+            <UpvoteButton
+              startupId={id}
+              initialUpvotes={post.upvotes || 0}
+              hasUpvoted={hasUpvoted}
+            />
+            <BookmarkButton
+              startupId={id}
+              isSaved={hasBookmarked}
+            />
+            <CopyLinkButton />
           </div>
 
           <h3 className="text-30-bold">Pitch Details</h3>

@@ -11,6 +11,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { createPitch, updatePitch } from "@/lib/actions";
+import { TagInput } from "./TagInput";
 
 interface StartupFormProps {
   startup?: {
@@ -20,12 +21,14 @@ interface StartupFormProps {
     category: string;
     image: string;
     pitch: string;
+    tags?: string[];
   };
 }
 
 const StartupForm = ({ startup }: StartupFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [pitch, setPitch] = useState(startup?.pitch || "");
+  const [tags, setTags] = useState<string[]>(startup?.tags || []);
   const router = useRouter();
   const isEditing = !!startup;
 
@@ -42,8 +45,8 @@ const StartupForm = ({ startup }: StartupFormProps) => {
       await formSchema.parseAsync(formValues);
 
       const result = isEditing
-        ? await updatePitch(prevState, formData, pitch, startup!._id)
-        : await createPitch(prevState, formData, pitch);
+        ? await updatePitch(prevState, formData, pitch, startup!._id, tags)
+        : await createPitch(prevState, formData, pitch, tags);
 
       if (result.status == "SUCCESS") {
         toast.success("Success", {
@@ -139,6 +142,13 @@ const StartupForm = ({ startup }: StartupFormProps) => {
         {errors.category && (
           <p className="startup-form_error">{errors.category}</p>
         )}
+      </div>
+
+      <div>
+        <label htmlFor="tags" className="startup-form_label">
+          Tags (Max 5)
+        </label>
+        <TagInput value={tags} onChange={setTags} />
       </div>
 
       <div>

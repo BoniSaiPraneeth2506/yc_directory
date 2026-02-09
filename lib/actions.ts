@@ -10,6 +10,7 @@ export const createPitch = async (
   state: any,
   form: FormData,
   pitch: string,
+  tags: string[] = [],
 ) => {
   const session = await auth();
 
@@ -40,6 +41,8 @@ export const createPitch = async (
         _ref: session?.id,
       },
       pitch,
+      upvotes: 0,
+      tags: tags || [],
     };
 
     const result = await writeClient.create({ _type: "startup", ...startup });
@@ -66,6 +69,7 @@ export const updatePitch = async (
   form: FormData,
   pitch: string,
   startupId: string,
+  tags: string[] = [],
 ) => {
   const session = await auth();
 
@@ -94,6 +98,7 @@ export const updatePitch = async (
           current: slug,
         },
         pitch,
+        tags: tags || [],
       })
       .commit();
 
@@ -164,6 +169,130 @@ export const deleteStartup = async (startupId: string) => {
 
     return parseServerActionResponse({
       error: errorMessage,
+      status: "ERROR",
+    });
+  }
+};
+
+export const toggleUpvote = async (startupId: string) => {
+  const session = await auth();
+
+  if (!session)
+    return parseServerActionResponse({
+      error: "Not signed in",
+      status: "ERROR",
+    });
+
+  try {
+    // Check if user has already upvoted
+    const startup = await writeClient.fetch(
+      `*[_type == "startup" && _id == $id][0]{ upvotes, upvotedBy }`,
+      { id: startupId }
+    );
+
+    const hasUpvoted = startup?.upvotedBy?.some(
+      (ref: any) => ref._ref === session.id
+    );
+
+    if (hasUpvoted) {
+      // Remove upvote - ensure it never goes below 0
+      const newUpvotes = Math.max((startup?.upvotes || 0) - 1, 0);
+      
+      await writeClient
+        .patch(startupId)
+        .set({ upvotes: newUpvotes })
+        .unset([`upvotedBy[_ref=="${session.id}"]`])
+        .commit();
+
+      // Remove from author's upvoted list
+      await writeClient
+        .patch(session.id)
+        .unset([`upvotedStartups[_ref=="${startupId}"]`])
+        .commit();
+    } else {
+      // Add upvote
+      await writeClient
+        .patch(startupId)
+        .setIfMissing({ upvotes: 0, upvotedBy: [] })
+        .inc({ upvotes: 1 })
+        .append("upvotedBy", [{ _type: "reference", _ref: session.id }])
+        .commit();
+
+      // Add to author's upvoted list
+      await writeClient
+        .patch(session.id)
+        .setIfMissing({ upvotedStartups: [] })
+        .append("upvotedStartups", [
+          { _type: "reference", _ref: startupId },
+        ])
+        .commit();
+    }
+
+    revalidatePath(`/startup/${startupId}`);
+    revalidatePath("/");
+
+    return parseServerActionResponse({
+      error: "",
+      status: "SUCCESS",
+    });
+  } catch (error: any) {
+    console.error("Upvote error:", error);
+
+    return parseServerActionResponse({
+      error: error?.message || "Failed to upvote",
+      status: "ERROR",
+    });
+  }
+};
+
+export const toggleBookmark = async (startupId: string) => {
+  const session = await auth();
+
+  if (!session)
+    return parseServerActionResponse({
+      error: "Not signed in",
+      status: "ERROR",
+    });
+
+  try {
+    // Check if user has already saved
+    const author = await writeClient.fetch(
+      `*[_type == "author" && _id == $id][0]{ savedStartups }`,
+      { id: session.id }
+    );
+
+    const isSaved = author?.savedStartups?.some(
+      (ref: any) => ref._ref === startupId
+    );
+
+    if (isSaved) {
+      // Remove bookmark
+      await writeClient
+        .patch(session.id)
+        .unset([`savedStartups[_ref=="${startupId}"]`])
+        .commit();
+    } else {
+      // Add bookmark
+      await writeClient
+        .patch(session.id)
+        .setIfMissing({ savedStartups: [] })
+        .append("savedStartups", [{ _type: "reference", _ref: startupId }])
+        .commit();
+    }
+
+    revalidatePath(`/startup/${startupId}`);
+    revalidatePath("/");
+    revalidatePath(`/user/${session.id}`);
+
+    return parseServerActionResponse({
+      error: "",
+      status: "SUCCESS",
+    });
+  } catch (error: any) {
+    console.error("Bookmark error:", error);
+
+    return parseServerActionResponse({
+      error: error?.message || "Failed to bookmark",
       status: "ERROR",
     });
   }

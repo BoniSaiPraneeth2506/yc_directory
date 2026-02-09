@@ -13,6 +13,76 @@ export const STARTUPS_QUERY =
   description,
   category,
   image,
+  upvotes,
+  tags
+}`);
+
+export const STARTUPS_BY_VIEWS_QUERY =
+  defineQuery(`*[_type == "startup" && defined(slug.current) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(views desc) {
+  _id, 
+  title, 
+  slug,
+  _createdAt,
+  author -> {
+    _id, name, image, bio
+  }, 
+  views,
+  description,
+  category,
+  image,
+  upvotes,
+  tags
+}`);
+
+export const STARTUPS_BY_UPVOTES_QUERY =
+  defineQuery(`*[_type == "startup" && defined(slug.current) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(coalesce(upvotes, 0) desc) {
+  _id, 
+  title, 
+  slug,
+  _createdAt,
+  author -> {
+    _id, name, image, bio
+  }, 
+  views,
+  description,
+  category,
+  image,
+  upvotes,
+  tags
+}`);
+
+export const STARTUPS_TRENDING_QUERY =
+  defineQuery(`*[_type == "startup" && defined(slug.current) && _createdAt > $weekAgo && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(views desc, upvotes desc) {
+  _id, 
+  title, 
+  slug,
+  _createdAt,
+  author -> {
+    _id, name, image, bio
+  }, 
+  views,
+  description,
+  category,
+  image,
+  upvotes,
+  tags
+}`);
+
+export const STARTUPS_BY_TAG_QUERY =
+  defineQuery(`*[_type == "startup" && defined(slug.current) && $tag in tags && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(_createdAt desc) {
+  _id, 
+  title, 
+  slug,
+  _createdAt,
+  author -> {
+    _id, name, image, bio
+  }, 
+  views,
+  description,
+  category,
+  image,
+  upvotes,
+  tags
 }`);
 
 export const STARTUP_BY_ID_QUERY =
@@ -29,6 +99,9 @@ export const STARTUP_BY_ID_QUERY =
   category,
   image,
   pitch,
+  upvotes,
+  upvotedBy,
+  tags
 }`);
 
 export const STARTUP_VIEWS_QUERY = defineQuery(`
@@ -46,7 +119,9 @@ export const AUTHOR_BY_GITHUB_ID_QUERY = defineQuery(`
     username,
     email,
     image,
-    bio
+    bio,
+    savedStartups,
+    upvotedStartups
 }
 `);
 
@@ -58,6 +133,8 @@ export const AUTHOR_BY_ID_QUERY = defineQuery(`
     name,
     username,
     email,
+    savedStartups,
+    upvotedStartups,
     image,
     bio
 }
@@ -73,6 +150,42 @@ export const STARTUPS_BY_AUTHOR_QUERY =
     _id, name, image, bio
   }, 
   views,
+  upvotes,
+  tags,
+  description,
+  category,
+  image,
+}`);
+
+export const UPVOTED_STARTUPS_BY_AUTHOR_QUERY =
+  defineQuery(`*[_type == "author" && _id == $id][0].upvotedStartups[]-> {
+  _id, 
+  title, 
+  slug,
+  _createdAt,
+  author -> {
+    _id, name, image, bio
+  }, 
+  views,
+  upvotes,
+  tags,
+  description,
+  category,
+  image,
+}`);
+
+export const SAVED_STARTUPS_BY_AUTHOR_QUERY =
+  defineQuery(`*[_type == "author" && _id == $id][0].savedStartups[]-> {
+  _id, 
+  title, 
+  slug,
+  _createdAt,
+  author -> {
+    _id, name, image, bio
+  }, 
+  views,
+  upvotes,
+  tags,
   description,
   category,
   image,

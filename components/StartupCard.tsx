@@ -1,10 +1,11 @@
 import { cn, formatDate } from "@/lib/utils";
-import { EyeIcon } from "lucide-react";
+import { EyeIcon, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Author, Startup } from "@/sanityio/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TagList } from "@/components/TagBadge";
 
 export type StartupTypeCard = Omit<Startup, "author"> & { author?: Author };
 
@@ -33,6 +34,8 @@ const StartupCard = ({ post }: { post: StartupTypeCard }) => {
     _id,
     image,
     description,
+    upvotes,
+    tags,
   } = post;
   const authorImage = resolveImageUrl(author?.image);
   const startupImage = resolveImageUrl(image) || "/logo.png";
@@ -41,9 +44,15 @@ const StartupCard = ({ post }: { post: StartupTypeCard }) => {
     <li className="startup-card group">
       <div className="flex-between">
         <p className="startup_card_date">{formatDate(_createdAt)}</p>
-        <div className="flex gap-1.5">
-          <EyeIcon className="size-6 text-primary" />
-          <span className="text-16-medium">{views}</span>
+        <div className="flex gap-3">
+          <div className="flex gap-1.5">
+            <EyeIcon className="size-6 text-primary" />
+            <span className="text-16-medium">{views}</span>
+          </div>
+          <div className="flex gap-1.5">
+            <ThumbsUp className="size-6 text-primary" />
+            <span className="text-16-medium">{upvotes || 0}</span>
+          </div>
         </div>
       </div>
 
@@ -76,6 +85,12 @@ const StartupCard = ({ post }: { post: StartupTypeCard }) => {
 
         <img src={startupImage} alt={title || "Startup"} className="startup-card_img" />
       </Link>
+
+      {tags && tags.length > 0 && (
+        <div className="mt-3">
+          <TagList tags={tags} />
+        </div>
+      )}
 
       <div className="flex-between gap-3 mt-5">
         <Link href={`/?query=${category?.toLowerCase()}`}>

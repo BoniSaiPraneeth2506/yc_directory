@@ -45,5 +45,24 @@ export const startup = defineType({
       type: "array",
       of: [{ type: "block" }],
     }),
+    defineField({
+      name: "upvotes",
+      type: "number",
+      initialValue: 0,
+    }),
+    defineField({
+      name: "upvotedBy",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "author" }] }],
+    }),
+    defineField({
+      name: "tags",
+      type: "array",
+      of: [{ type: "string" }],
+      options: {
+        layout: "tags",
+      },
+      validation: (Rule) => Rule.max(5).error("Maximum 5 tags allowed"),
+    }),
   ],
 });
