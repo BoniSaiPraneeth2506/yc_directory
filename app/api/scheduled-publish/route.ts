@@ -6,14 +6,14 @@ import { client } from "@/sanityio/lib/client";
 // to automatically publish posts that have reached their scheduled time
 export async function POST(request: NextRequest) {
   try {
-    // Verify the request is from a cron job (add authorization if needed)
+    // Verify the request is from a cron job
     const authHeader = request.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
 
-    // Optional: Uncomment to add authentication
-    // if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
+    // Authenticate cron job requests
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Find all posts that:
     // 1. Have a scheduledFor date

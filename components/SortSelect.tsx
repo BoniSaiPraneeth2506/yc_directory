@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -14,12 +15,27 @@ export function SortSelect() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentSort = searchParams.get("sort") || "latest";
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSort = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("sort", value);
     router.push(`/?${params.toString()}`, { scroll: false });
   };
+
+  // Prevent hydration mismatch by rendering only after mount
+  if (!mounted) {
+    return (
+      <div className="w-[44px] sm:w-[180px] h-[44px] bg-white border-2 border-gray-200 rounded-md flex items-center justify-center shadow-sm flex-shrink-0">
+        <SlidersHorizontal className="size-4 sm:hidden" />
+        <span className="hidden sm:inline text-sm text-muted-foreground">Sort by</span>
+      </div>
+    );
+  }
 
   return (
     <Select value={currentSort} onValueChange={handleSort}>
