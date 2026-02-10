@@ -69,15 +69,17 @@ export default async function Home({
       </section>
 
       <section className="section_container">
-        <div className="flex items-center justify-between gap-3 mb-5">
-          <p className="text-30-semibold">
+        <div className="flex items-center justify-between gap-3 mb-5 flex-wrap sm:flex-nowrap">
+          <p className="text-30-semibold flex-shrink min-w-0">
             {tag
               ? `Startups tagged with "${tag}"`
               : searchQuery
                 ? `Search results for "${searchQuery}"`
                 : "All Startups"}
           </p>
-          <SortSelect />
+          <div className="flex-shrink-0">
+            <SortSelect />
+          </div>
         </div>
 
         <InfiniteScroll initialPosts={posts || []} />

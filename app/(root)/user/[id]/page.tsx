@@ -24,6 +24,15 @@ async function UserProfile({ id }: { id: string }) {
   
   const isOwnProfile = session?.id === id;
   
+  // Debug logging
+  console.log('👤 Profile Debug:', {
+    requestedUserId: id,
+    sessionUserId: session?.id,
+    isOwnProfile,
+    hasUpvotedStartups: user.upvotedStartups?.length || 0,
+    hasSavedStartups: user.savedStartups?.length || 0,
+  });
+  
   // Check if current user is following this profile
   const currentUserFollowing = session
     ? await client.fetch(
@@ -115,16 +124,22 @@ async function UserProfile({ id }: { id: string }) {
           }
           upvotedContent={
             isOwnProfile ? (
-              <Suspense fallback={<StartupCardSkeleton />}>
-                <UpvotedStartups id={id} />
-              </Suspense>
+              <>
+                {console.log('🔄 Rendering upvotedContent wrapper')}
+                <Suspense fallback={<div className="text-center py-4">Loading liked posts...</div>}>
+                  <UpvotedStartups id={id} />
+                </Suspense>
+              </>
             ) : null
           }
           savedContent={
             isOwnProfile ? (
-              <Suspense fallback={<StartupCardSkeleton />}>
-                <SavedStartups id={id} />
-              </Suspense>
+              <>
+                {console.log('🔄 Rendering savedContent wrapper')}
+                <Suspense fallback={<div className="text-center py-4">Loading saved posts...</div>}>
+                  <SavedStartups id={id} />
+                </Suspense>
+              </>
             ) : null
           }
           followersContent={

@@ -251,7 +251,7 @@ export const STARTUPS_BY_AUTHOR_QUERY =
 }`);
 
 export const UPVOTED_STARTUPS_BY_AUTHOR_QUERY =
-  defineQuery(`*[_type == "author" && _id == $id][0].upvotedStartups[]-> [defined(_id) && coalesce(isDraft, false) == false] {
+  defineQuery(`*[_type == "author" && _id == $id][0].upvotedStartups[]->[defined(_id) && defined(title) && coalesce(isDraft, false) == false] {
   _id, 
   title, 
   slug,
@@ -268,7 +268,7 @@ export const UPVOTED_STARTUPS_BY_AUTHOR_QUERY =
 }`);
 
 export const SAVED_STARTUPS_BY_AUTHOR_QUERY =
-  defineQuery(`*[_type == "author" && _id == $id][0].savedStartups[]-> [defined(_id) && coalesce(isDraft, false) == false] {
+  defineQuery(`*[_type == "author" && _id == $id][0].savedStartups[]->[defined(_id) && defined(title) && coalesce(isDraft, false) == false] {
   _id, 
   title, 
   slug,

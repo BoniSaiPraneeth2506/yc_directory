@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { client } from "@/sanityio/lib/client";
 import {
-  PLAYLIST_BY_SLUG_QUERY,
   STARTUP_BY_ID_QUERY,
 } from "@/sanityio/lib/queries";
 import { notFound } from "next/navigation";
@@ -42,11 +41,8 @@ async function StartupDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
 
-  const [post, editorPlaylist, userProfile] = await Promise.all([
+  const [post, userProfile] = await Promise.all([
     client.fetch(STARTUP_BY_ID_QUERY, { id }, { cache: "no-store" }),
-    client.fetch(PLAYLIST_BY_SLUG_QUERY, {
-      slug: "editor-picks",
-    }),
     session
       ? client.fetch(
           `*[_type == "author" && _id == $id][0]{ savedStartups }`,
@@ -55,12 +51,7 @@ async function StartupDetails({ params }: { params: Promise<{ id: string }> }) {
       : Promise.resolve(null),
   ]);
 
-  console.log("🎯 Editor Playlist fetched:", editorPlaylist);
-  console.log("📚 Editor Posts:", editorPlaylist?.select);
-
   if (!post) return notFound();
-
-  const editorPosts = editorPlaylist?.select || [];
   const pitch = post?.pitch;
   const authorImage = resolveImageUrl(post?.author?.image) || "/logo.png";
   const startupImage = resolveImageUrl(post?.image) || "/logo.png";
@@ -178,25 +169,6 @@ async function StartupDetails({ params }: { params: Promise<{ id: string }> }) {
         </Suspense>
 
         <hr className="divider" />
-
-        {/* Top Picks - Editor's Choice */}
-        {editorPosts?.length > 0 && (
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center gap-3 mb-5">
-              <h2 className="text-30-semibold">Top Picks</h2>
-            </div>
-            <p className="text-14-medium text-gray-600 dark:text-gray-400 mb-5">
-              Handpicked startups from our editors
-            </p>
-            <ul className="card_grid-sm">
-              {editorPosts.filter(Boolean).map((post: StartupTypeCard, i: number) => (
-                <StartupCard key={post._id || i} post={post} />
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {editorPosts?.length > 0 && <hr className="divider" />}
 
         {/* Comment Section */}
         <div className="max-w-4xl mx-auto">
