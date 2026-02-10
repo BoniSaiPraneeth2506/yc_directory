@@ -59,7 +59,7 @@ export function CommentForm({
         disabled={isPending}
       />
       <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-gray-600 dark:text-gray-400">
           {content.length}/1000
         </span>
         <Button

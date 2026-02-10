@@ -101,19 +101,20 @@ export function CommentItem({
             <Link
               href={`/user/${comment.author._id}`}
               className="font-semibold hover:underline text-sm sm:text-base"
+              style={{ color: '#000000' }}
             >
               {comment.author.name}
             </Link>
-            <span className="text-xs sm:text-sm text-gray-400">•</span>
-            <span className="text-xs sm:text-sm text-gray-500">
+            <span className="text-xs sm:text-sm" style={{ color: '#666666' }}>•</span>
+            <span className="text-xs sm:text-sm" style={{ color: '#666666' }}>
               {formatDistanceToNow(new Date(comment._createdAt), {
                 addSuffix: true,
               })}
             </span>
           </div>
 
-          <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 mb-3 whitespace-pre-wrap break-words">
-            {comment.content}
+          <p className="text-sm sm:text-base mb-3 whitespace-pre-wrap break-words leading-relaxed font-medium" style={{ color: '#000000' }}>
+            {comment.content || '[No content]'}
           </p>
 
           <div className="flex items-center gap-4">
@@ -123,8 +124,9 @@ export function CommentItem({
               className={`flex items-center gap-1 text-sm ${
                 isUpvoted
                   ? "text-primary font-semibold"
-                  : "text-gray-600 hover:text-primary"
+                  : "hover:text-primary"
               } transition-colors disabled:opacity-50`}
+              style={!isUpvoted ? { color: '#333333' } : undefined}
             >
               <ArrowBigUp
                 className={`size-5 ${isUpvoted ? "fill-current" : ""}`}
@@ -135,7 +137,8 @@ export function CommentItem({
             {canNest && currentUserId && (
               <button
                 onClick={() => setShowReplyForm(!showReplyForm)}
-                className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary transition-colors"
+                className="flex items-center gap-1 text-sm hover:text-primary transition-colors"
+                style={{ color: '#333333' }}
               >
                 <Reply className="size-4" />
                 Reply
