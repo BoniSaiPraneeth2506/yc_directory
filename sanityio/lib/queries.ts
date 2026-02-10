@@ -2,7 +2,7 @@ import { defineQuery } from "next-sanity";
 
 // Paginated queries for infinite scroll (12 posts per page)
 export const STARTUPS_QUERY_PAGINATED =
-  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(_createdAt desc) [$offset...$limit] {
+  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined(scheduledFor) || scheduledFor <= now()) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(_createdAt desc) [$offset...$limit] {
   _id, 
   title, 
   slug,
@@ -19,7 +19,7 @@ export const STARTUPS_QUERY_PAGINATED =
 }`);
 
 export const STARTUPS_BY_VIEWS_QUERY_PAGINATED =
-  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(views desc) [$offset...$limit] {
+  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined(scheduledFor) || scheduledFor <= now()) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(views desc) [$offset...$limit] {
   _id, 
   title, 
   slug,
@@ -36,7 +36,7 @@ export const STARTUPS_BY_VIEWS_QUERY_PAGINATED =
 }`);
 
 export const STARTUPS_BY_UPVOTES_QUERY_PAGINATED =
-  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(coalesce(upvotes, 0) desc) [$offset...$limit] {
+  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined(scheduledFor) || scheduledFor <= now()) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(coalesce(upvotes, 0) desc) [$offset...$limit] {
   _id, 
   title, 
   slug,
@@ -53,7 +53,7 @@ export const STARTUPS_BY_UPVOTES_QUERY_PAGINATED =
 }`);
 
 export const STARTUPS_BY_TAG_QUERY_PAGINATED =
-  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && $tag in tags && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(_createdAt desc) [$offset...$limit] {
+  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined(scheduledFor) || scheduledFor <= now()) && $tag in tags && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(_createdAt desc) [$offset...$limit] {
   _id, 
   title, 
   slug,
@@ -70,7 +70,7 @@ export const STARTUPS_BY_TAG_QUERY_PAGINATED =
 }`);
 
 export const STARTUPS_QUERY =
-  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(_createdAt desc) {
+  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined(scheduledFor) || scheduledFor <= now()) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(_createdAt desc) {
   _id, 
   title, 
   slug,
@@ -87,7 +87,7 @@ export const STARTUPS_QUERY =
 }`);
 
 export const STARTUPS_BY_VIEWS_QUERY =
-  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(views desc) {
+  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined(scheduledFor) || scheduledFor <= now()) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(views desc) {
   _id, 
   title, 
   slug,
@@ -104,7 +104,7 @@ export const STARTUPS_BY_VIEWS_QUERY =
 }`);
 
 export const STARTUPS_BY_UPVOTES_QUERY =
-  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(coalesce(upvotes, 0) desc) {
+  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined(scheduledFor) || scheduledFor <= now()) && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(coalesce(upvotes, 0) desc) {
   _id, 
   title, 
   slug,
@@ -121,7 +121,7 @@ export const STARTUPS_BY_UPVOTES_QUERY =
 }`);
 
 export const STARTUPS_TRENDING_QUERY =
-  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && _createdAt > $weekAgo && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(views desc, upvotes desc) {
+  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined(scheduledFor) || scheduledFor <= now()) && _createdAt > $weekAgo && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(views desc, upvotes desc) {
   _id, 
   title, 
   slug,
@@ -138,7 +138,7 @@ export const STARTUPS_TRENDING_QUERY =
 }`);
 
 export const STARTUPS_BY_TAG_QUERY =
-  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && $tag in tags && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(_createdAt desc) {
+  defineQuery(`*[_type == "startup" && defined(slug.current) && (isDraft != true) && (!defined(scheduledFor) || scheduledFor <= now()) && $tag in tags && (!defined($search) || title match $search || category match $search || author->name match $search)] | order(_createdAt desc) {
   _id, 
   title, 
   slug,
@@ -234,7 +234,7 @@ export const FOLLOWING_BY_AUTHOR_QUERY = defineQuery(`
 `);
 
 export const STARTUPS_BY_AUTHOR_QUERY =
-  defineQuery(`*[_type == "startup" && author._ref == $id && (isDraft != true)] | order(_createdAt desc) {
+  defineQuery(`*[_type == "startup" && author._ref == $id && (isDraft != true) && (!defined(scheduledFor) || scheduledFor <= now())] | order(_createdAt desc) {
   _id, 
   title, 
   slug,
@@ -251,7 +251,7 @@ export const STARTUPS_BY_AUTHOR_QUERY =
 }`);
 
 export const UPVOTED_STARTUPS_BY_AUTHOR_QUERY =
-  defineQuery(`*[_type == "author" && _id == $id][0].upvotedStartups[]->[defined(_id) && defined(title) && coalesce(isDraft, false) == false] {
+  defineQuery(`*[_type == "author" && _id == $id][0].upvotedStartups[]->{
   _id, 
   title, 
   slug,
@@ -265,10 +265,11 @@ export const UPVOTED_STARTUPS_BY_AUTHOR_QUERY =
   description,
   category,
   image,
+  isDraft
 }`);
 
 export const SAVED_STARTUPS_BY_AUTHOR_QUERY =
-  defineQuery(`*[_type == "author" && _id == $id][0].savedStartups[]->[defined(_id) && defined(title) && coalesce(isDraft, false) == false] {
+  defineQuery(`*[_type == "author" && _id == $id][0].savedStartups[]->{
   _id, 
   title, 
   slug,
@@ -282,6 +283,7 @@ export const SAVED_STARTUPS_BY_AUTHOR_QUERY =
   description,
   category,
   image,
+  isDraft
 }`);
 
 

@@ -273,8 +273,8 @@ const StartupForm = ({ startup }: StartupFormProps) => {
       </div>
 
       {/* Schedule Publishing */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
           <input
             type="checkbox"
             id="showSchedule"
@@ -283,21 +283,32 @@ const StartupForm = ({ startup }: StartupFormProps) => {
               setShowSchedule(e.target.checked);
               if (!e.target.checked) setScheduledFor("");
             }}
-            className="size-4"
+            className="size-4 cursor-pointer"
           />
-          <label htmlFor="showSchedule" className="startup-form_label !mb-0">
+          <label htmlFor="showSchedule" className="startup-form_label !mb-0 flex items-center gap-2 cursor-pointer">
+            <Calendar className="size-5" />
             Schedule for later
           </label>
         </div>
         
         {showSchedule && (
-          <Input
-            type="datetime-local"
-            value={scheduledFor}
-            onChange={(e) => setScheduledFor(e.target.value)}
-            min={new Date().toISOString().slice(0, 16)}
-            className="startup-form_input"
-          />
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Select publish date and time:
+            </label>
+            <input
+              type="datetime-local"
+              value={scheduledFor}
+              onChange={(e) => setScheduledFor(e.target.value)}
+              min={new Date().toISOString().slice(0, 16)}
+              className="w-full border-[3px] border-black px-4 py-3 text-base font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            {scheduledFor && (
+              <p className="text-sm text-gray-600">
+                Will publish on: {new Date(scheduledFor).toLocaleString()}
+              </p>
+            )}
+          </div>
         )}
       </div>
 

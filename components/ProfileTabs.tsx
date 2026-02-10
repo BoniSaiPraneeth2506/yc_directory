@@ -150,7 +150,7 @@ export function ProfileTabs({
                 onClick={() => handleTabChange(tab.id)}
                 className={`flex-1 px-4 py-3 font-semibold rounded-md transition-all duration-300 flex items-center justify-center gap-2 ${
                   activeTab === tab.id
-                    ? "bg-white text-primary shadow-sm"
+                    ? "bg-primary text-white shadow-md"
                     : "text-gray-700 hover:text-gray-900 hover:bg-gray-200"
                 }`}
               >

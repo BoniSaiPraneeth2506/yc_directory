@@ -10,6 +10,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       defaultTheme="light"
       enableSystem={false}
       disableTransitionOnChange
+      storageKey="yc-new-theme-2026"
+      value={{
+        light: "light",
+        dark: "dark"
+      }}
+      themes={["light", "dark"]}
     >
       {children}
     </NextThemesProvider>

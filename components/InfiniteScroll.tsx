@@ -107,8 +107,147 @@ export function InfiniteScroll({ initialPosts }: InfiniteScrollProps) {
       )}
 
       {!hasMore && posts.length > 0 && (
-        <div className="text-center py-8 text-gray-500">
-          <p>You've reached the end! 🎉</p>
+        <div className="mt-16 mb-12">
+          <div className="text-center mb-8 space-y-2">
+            <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary via-pink-600 to-purple-600">
+              Words from Visionaries
+            </h3>
+            <p className="text-sm text-gray-500">Inspiration from those who dared to dream</p>
+          </div>
+          
+          <div className="relative">
+            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+            
+            <div className="overflow-x-auto pb-6 hide-scrollbar">
+              <div className="flex gap-6 px-6 min-w-max">
+                
+                {/* Quote Card 1 */}
+                <div className="group w-96 relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-pink-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="relative bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-primary transition-all duration-300 hover:shadow-xl">
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-pink-600 flex items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-lg">
+                        W
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900">Walt Disney</p>
+                        <p className="text-sm text-gray-500">Founder, Disney</p>
+                      </div>
+                    </div>
+                    <p className="text-lg text-gray-700 leading-relaxed font-medium italic">
+                      "The way to get started is to quit talking and begin doing."
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quote Card 2 */}
+                <div className="group w-96 relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="relative bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-purple-500 transition-all duration-300 hover:shadow-xl">
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-lg">
+                        S
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900">Steve Jobs</p>
+                        <p className="text-sm text-gray-500">Co-founder, Apple</p>
+                      </div>
+                    </div>
+                    <p className="text-lg text-gray-700 leading-relaxed font-medium italic">
+                      "Innovation distinguishes between a leader and a follower."
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quote Card 3 */}
+                <div className="group w-96 relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-primary/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="relative bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-blue-500 transition-all duration-300 hover:shadow-xl">
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-lg">
+                        M
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900">Mark Zuckerberg</p>
+                        <p className="text-sm text-gray-500">Founder, Meta</p>
+                      </div>
+                    </div>
+                    <p className="text-lg text-gray-700 leading-relaxed font-medium italic">
+                      "The biggest risk is not taking any risk. The only strategy guaranteed to fail is not taking risks."
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quote Card 4 */}
+                <div className="group w-96 relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-primary/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="relative bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-orange-500 transition-all duration-300 hover:shadow-xl">
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-lg">
+                        E
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900">Elon Musk</p>
+                        <p className="text-sm text-gray-500">CEO, Tesla & SpaceX</p>
+                      </div>
+                    </div>
+                    <p className="text-lg text-gray-700 leading-relaxed font-medium italic">
+                      "When something is important enough, you do it even if the odds are not in your favor."
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quote Card 5 */}
+                <div className="group w-96 relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-primary/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="relative bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-green-500 transition-all duration-300 hover:shadow-xl">
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-lg">
+                        R
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900">Reid Hoffman</p>
+                        <p className="text-sm text-gray-500">Co-founder, LinkedIn</p>
+                      </div>
+                    </div>
+                    <p className="text-lg text-gray-700 leading-relaxed font-medium italic">
+                      "An entrepreneur is someone who jumps off a cliff and builds a plane on the way down."
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quote Card 6 */}
+                <div className="group w-96 relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="relative bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-primary transition-all duration-300 hover:shadow-xl">
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-pink-700 flex items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-lg">
+                        P
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900">Peter Thiel</p>
+                        <p className="text-sm text-gray-500">Co-founder, PayPal</p>
+                      </div>
+                    </div>
+                    <p className="text-lg text-gray-700 leading-relaxed font-medium italic">
+                      "A startup is the largest group of people you can convince of a plan to build a different future."
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-center items-center gap-2 mt-8">
+            <div className="flex gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+            <p className="text-sm text-gray-400 font-medium">Scroll to explore more</p>
+          </div>
         </div>
       )}
     </>

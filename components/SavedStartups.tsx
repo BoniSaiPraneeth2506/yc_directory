@@ -7,16 +7,13 @@ const SavedStartups = async ({ id }: { id: string }) => {
   try {
     const startups = await client.fetch(SAVED_STARTUPS_BY_AUTHOR_QUERY, { id });
     
-    // Filter out null values first
-    const validStartups = startups?.filter(Boolean) || [];
+    // Filter out null values
+    const validStartups = (startups || []).filter((startup: any) => startup && startup._id);
     
-    console.log('💾 Saved Startups Data:', { 
-      id, 
-      totalCount: startups?.length,
-      validCount: validStartups.length,
-      hasData: !!startups,
-      isArray: Array.isArray(startups),
-      startups 
+    console.log('💾 Saved Startups:', { 
+      userId: id,
+      total: startups?.length || 0,
+      valid: validStartups.length
     });
 
     return (

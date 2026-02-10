@@ -3,7 +3,6 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 import { Input } from "./ui/input";
-import { Button } from "./ui/button";
 
 interface TagInputProps {
   value: string[];
@@ -28,6 +27,22 @@ export function TagInput({ value, onChange, maxTags = 5 }: TagInputProps) {
 
   const removeTag = (tagToRemove: string) => {
     onChange(value.filter((tag) => tag !== tagToRemove));
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    
+    // Check if user typed a comma
+    if (newValue.includes(",")) {
+      // Extract tag before comma
+      const tag = newValue.split(",")[0];
+      addTag(tag);
+      // Keep any text after comma (in case multiple commas)
+      const remaining = newValue.split(",").slice(1).join(",");
+      setInputValue(remaining);
+    } else {
+      setInputValue(newValue);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -62,19 +77,20 @@ export function TagInput({ value, onChange, maxTags = 5 }: TagInputProps) {
         <Input
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder={
             value.length >= maxTags
               ? `Maximum ${maxTags} tags`
-              : "Add tags (press Enter)"
+              : "Type tag and press comma or Enter"
           }
           disabled={value.length >= maxTags}
           className="startup-form_input"
+          enterKeyHint="done"
         />
       </div>
       <p className="text-xs text-gray-500">
-        {value.length}/{maxTags} tags • Press Enter to add
+        {value.length}/{maxTags} tags • Use comma (,) or Enter to add
       </p>
     </div>
   );

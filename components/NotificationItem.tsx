@@ -73,37 +73,45 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     <Link
       href={getNotificationLink(notification)}
       onClick={handleClick}
-      className={`flex gap-3 p-4 border-b hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-        !isRead ? "bg-blue-50 dark:bg-blue-900/10" : ""
-      }`}
+      className={`group flex gap-4 p-4 rounded-xl transition-all duration-300 ${
+        !isRead 
+          ? "bg-gradient-to-r from-primary/5 to-pink-50 hover:from-primary/10 hover:to-pink-100 border-2 border-primary/20" 
+          : "bg-white hover:bg-gray-50 border-2 border-gray-100 hover:border-gray-200"
+      } shadow-sm hover:shadow-md`}
     >
       <div className="flex-shrink-0">
-        <Image
-          src={notification.sender.image || "/default-avatar.png"}
-          alt={notification.sender.name}
-          width={48}
-          height={48}
-          className="rounded-full object-cover"
-        />
+        <div className="relative">
+          <Image
+            src={notification.sender.image || "/default-avatar.png"}
+            alt={notification.sender.name}
+            width={48}
+            height={48}
+            className="rounded-full object-cover border-2 border-white shadow-md"
+          />
+          <div className="absolute -bottom-1 -right-1 p-1.5 bg-white rounded-full shadow-lg">
+            {getNotificationIcon(notification.type)}
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start gap-2 mb-1">
-          {getNotificationIcon(notification.type)}
-          <p className="text-sm text-gray-900 dark:text-gray-100">
-            <span className="font-semibold">{notification.sender.name}</span>
+          <p className="text-sm text-gray-900 leading-relaxed">
+            <span className="font-bold text-gray-900">{notification.sender.name}</span>
             {" "}
-            {notification.message.replace(notification.sender.name, "").trim()}
+            <span className="text-gray-600">{notification.message.replace(notification.sender.name, "").trim()}</span>
           </p>
         </div>
 
         {notification.relatedStartup && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-            {notification.relatedStartup.title}
-          </p>
+          <div className="mt-2 px-3 py-1.5 bg-gray-100 rounded-lg inline-block">
+            <p className="text-xs font-medium text-gray-700 truncate">
+              {notification.relatedStartup.title}
+            </p>
+          </div>
         )}
 
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-500 mt-2 font-medium">
           {formatDistanceToNow(new Date(notification._createdAt), {
             addSuffix: true,
           })}
@@ -111,8 +119,11 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       </div>
 
       {!isRead && (
-        <div className="flex-shrink-0">
-          <div className="size-2 bg-blue-500 rounded-full" />
+        <div className="flex-shrink-0 flex items-start pt-1">
+          <div className="relative">
+            <div className="size-3 bg-primary rounded-full animate-pulse"></div>
+            <div className="absolute inset-0 size-3 bg-primary rounded-full animate-ping"></div>
+          </div>
         </div>
       )}
     </Link>

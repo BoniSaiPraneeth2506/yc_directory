@@ -24,25 +24,32 @@ async function NotificationsList() {
   const hasUnread = notifications.some((n: any) => !n.read);
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Bell className="size-8 text-primary" />
-          <h1 className="text-3xl font-bold">Notifications</h1>
+    <div className="max-w-4xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-br from-primary to-pink-600 rounded-xl">
+            <Bell className="size-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
+            <p className="text-sm text-gray-500 mt-1">Stay updated with your community activity</p>
+          </div>
         </div>
         {hasUnread && <MarkAllReadButton />}
       </div>
 
       {notifications.length === 0 ? (
-        <div className="text-center py-16">
-          <Bell className="size-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">No notifications yet</p>
-          <p className="text-gray-400 text-sm mt-2">
+        <div className="text-center py-20 bg-white rounded-3xl border-2 border-gray-100 shadow-sm">
+          <div className="p-4 bg-gray-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+            <Bell className="size-10 text-gray-400" />
+          </div>
+          <p className="text-gray-700 text-xl font-semibold mb-2">No notifications yet</p>
+          <p className="text-gray-500 text-sm">
             When people interact with your content, you'll see it here
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border dark:border-gray-800 overflow-hidden">
+        <div className="space-y-3">
           {notifications.map((notification: any) => (
             <NotificationItem
               key={notification._id}

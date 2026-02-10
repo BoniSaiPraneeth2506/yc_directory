@@ -1,5 +1,5 @@
 import React from "react";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
 
 interface StatCardProps {
   label: string;
@@ -13,30 +13,31 @@ interface StatCardProps {
 
 const StatCard = ({ label, value, icon: Icon, trend }: StatCardProps) => {
   return (
-    <div className="bg-white dark:bg-black-200 rounded-lg p-6 border border-black-100 dark:border-black-300 hover:border-primary dark:hover:border-primary transition-all">
-      <div className="flex items-center justify-between mb-4">
-        <div className="p-3 bg-primary-100 dark:bg-primary/10 rounded-lg">
-          <Icon className="size-6 text-primary" />
-        </div>
-        {trend && (
-          <span
-            className={`text-sm font-medium ${
+    <div className="group relative aspect-square">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-pink-100/50 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      <div className="relative h-full bg-white rounded-3xl p-6 border-2 border-gray-200 hover:border-primary transition-all duration-300 shadow-sm hover:shadow-xl flex flex-col justify-between">
+        <div className="flex items-start justify-between">
+          <div className="p-2 bg-gradient-to-br from-primary to-pink-600 rounded-xl shadow-lg">
+            <Icon className="size-4 text-white" />
+          </div>
+          {trend && (
+            <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold ${
               trend.isPositive
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400"
-            }`}
-          >
-            {trend.isPositive ? "+" : ""}
-            {trend.value}%
-          </span>
-        )}
-      </div>
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}>
+              {trend.isPositive ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+              <span>{Math.abs(trend.value)}%</span>
+            </div>
+          )}
+        </div>
 
-      <div className="space-y-1">
-        <p className="text-2xl font-bold text-black-300 dark:text-white">
-          {typeof value === "number" ? value.toLocaleString() : value}
-        </p>
-        <p className="text-sm text-black-200 dark:text-white-100">{label}</p>
+        <div className="space-y-2">
+          <p className="text-4xl font-bold text-gray-900 tracking-tight">
+            {typeof value === "number" ? value.toLocaleString() : value}
+          </p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{label}</p>
+        </div>
       </div>
     </div>
   );

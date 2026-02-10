@@ -237,7 +237,7 @@ export const toggleUpvote = async (startupId: string) => {
         .patch(startupId)
         .setIfMissing({ upvotes: 0, upvotedBy: [] })
         .inc({ upvotes: 1 })
-        .append("upvotedBy", [{ _type: "reference", _ref: session.id }])
+        .append("upvotedBy", [{ _type: "reference", _ref: session.id, _key: crypto.randomUUID() }])
         .commit();
 
       // Add to author's upvoted list
@@ -245,7 +245,7 @@ export const toggleUpvote = async (startupId: string) => {
         .patch(session.id)
         .setIfMissing({ upvotedStartups: [] })
         .append("upvotedStartups", [
-          { _type: "reference", _ref: startupId },
+          { _type: "reference", _ref: startupId, _key: crypto.randomUUID() },
         ])
         .commit();
 
@@ -327,7 +327,7 @@ export const toggleBookmark = async (startupId: string) => {
       await writeClient
         .patch(session.id)
         .setIfMissing({ savedStartups: [] })
-        .append("savedStartups", [{ _type: "reference", _ref: startupId }])
+        .append("savedStartups", [{ _type: "reference", _ref: startupId, _key: crypto.randomUUID() }])
         .commit();
     }
 
@@ -391,13 +391,13 @@ export const toggleFollow = async (targetUserId: string) => {
       await writeClient
         .patch(session.id)
         .setIfMissing({ following: [] })
-        .append("following", [{ _type: "reference", _ref: targetUserId }])
+        .append("following", [{ _type: "reference", _ref: targetUserId, _key: crypto.randomUUID() }])
         .commit();
 
       await writeClient
         .patch(targetUserId)
         .setIfMissing({ followers: [] })
-        .append("followers", [{ _type: "reference", _ref: session.id }])
+        .append("followers", [{ _type: "reference", _ref: session.id, _key: crypto.randomUUID() }])
         .commit();
 
       // Create notification for follow
@@ -602,7 +602,7 @@ export const toggleCommentUpvote = async (commentId: string) => {
         .patch(commentId)
         .setIfMissing({ upvotes: 0, upvotedBy: [] })
         .inc({ upvotes: 1 })
-        .append("upvotedBy", [{ _type: "reference", _ref: session.id }])
+        .append("upvotedBy", [{ _type: "reference", _ref: session.id, _key: crypto.randomUUID() }])
         .commit();
     }
 

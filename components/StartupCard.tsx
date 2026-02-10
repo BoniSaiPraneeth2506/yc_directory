@@ -1,5 +1,5 @@
 import { cn, formatDate } from "@/lib/utils";
-import { EyeIcon, ThumbsUp } from "lucide-react";
+import { EyeIcon, ThumbsUp, FileText } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,12 @@ import { Author, Startup } from "@/sanityio/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TagList } from "@/components/TagBadge";
 
-export type StartupTypeCard = Omit<Startup, "author"> & { author?: Author };
+export type StartupTypeCard = Omit<Startup, "author"> & { 
+  author?: Author;
+  upvotes?: number;
+  tags?: string[];
+  isDraft?: boolean;
+};
 
 const resolveImageUrl = (url?: string) => {
   if (!url) return "";
@@ -36,12 +41,21 @@ const StartupCard = ({ post }: { post: StartupTypeCard }) => {
     description,
     upvotes,
     tags,
+    isDraft,
   } = post;
   const authorImage = resolveImageUrl(author?.image);
   const startupImage = resolveImageUrl(image) || "/logo.png";
 
   return (
     <li className="startup-card group">
+      {/* Draft Badge */}
+      {isDraft && (
+        <div className="mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-sm font-medium">
+          <FileText className="size-4" />
+          <span>Draft</span>
+        </div>
+      )}
+      
       <div className="flex-between">
         <p className="startup_card_date">{formatDate(_createdAt)}</p>
         <div className="flex gap-3">

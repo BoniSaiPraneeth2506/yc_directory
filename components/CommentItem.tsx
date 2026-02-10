@@ -84,38 +84,35 @@ export function CommentItem({
   };
 
   return (
-    <div className={`${level > 0 ? "ml-8 mt-4" : "mt-6"}`}>
-      <div className="flex gap-3">
-        <Link href={`/user/${comment.author._id}`}>
+    <div className={`${level > 0 ? "ml-4 sm:ml-8 mt-4" : "mt-6"}`}>
+      <div className="flex gap-2 sm:gap-3">
+        <Link href={`/user/${comment.author._id}`} className="flex-shrink-0">
           <Image
             src={comment.author.image || "/default-avatar.png"}
             alt={comment.author.name}
-            width={40}
-            height={40}
-            className="rounded-full object-cover"
+            width={36}
+            height={36}
+            className="rounded-full object-cover sm:w-10 sm:h-10"
           />
         </Link>
 
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <Link
               href={`/user/${comment.author._id}`}
-              className="font-semibold hover:underline"
+              className="font-semibold hover:underline text-sm sm:text-base"
             >
               {comment.author.name}
             </Link>
-            <span className="text-sm text-gray-500">
-              @{comment.author.username}
-            </span>
-            <span className="text-sm text-gray-400">•</span>
-            <span className="text-sm text-gray-500">
+            <span className="text-xs sm:text-sm text-gray-400">•</span>
+            <span className="text-xs sm:text-sm text-gray-500">
               {formatDistanceToNow(new Date(comment._createdAt), {
                 addSuffix: true,
               })}
             </span>
           </div>
 
-          <p className="text-gray-700 dark:text-gray-300 mb-3 whitespace-pre-wrap">
+          <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 mb-3 whitespace-pre-wrap break-words">
             {comment.content}
           </p>
 

@@ -27,11 +27,10 @@ export function MarkAllReadButton() {
     <Button
       onClick={handleMarkAllRead}
       disabled={isPending}
-      variant="outline"
-      className="flex items-center gap-2"
+      className="flex items-center gap-2 bg-gradient-to-r from-primary to-pink-600 hover:from-primary/90 hover:to-pink-600/90 text-white shadow-md hover:shadow-lg transition-all duration-300"
     >
       <CheckCheck className="size-4" />
-      {isPending ? "Marking..." : "Mark all as read"}
+      {isPending ? "Marking..." : "Mark all read"}
     </Button>
   );
 }
