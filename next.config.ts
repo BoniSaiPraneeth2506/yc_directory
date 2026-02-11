@@ -12,12 +12,34 @@ const nextConfig: NextConfig = {
         hostname: "**",
       },
     ],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60,
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   // cacheComponents: true, // Disabled: causes issues with auth() and dynamic routes
   devIndicators: {
     // appIsrStatus: true,
     // buildActivity: true,
     buildActivityPosition: "bottom-right",
+  },
+  // Compression & Optimization
+  compress: true,
+  poweredByHeader: false,
+  reactStrictMode: true,
+  experimental: {
+    optimizeServerReact: true,
+    memoryBasedWorkersCount: true,
+    cpus: 4,
+    serverMinification: true,
+  },
+  // Bundle optimization
+  modularizeImports: {
+    '@/components/ui': {
+      transform: '@/components/ui/{{member}}',
+    },
   },
 };
 

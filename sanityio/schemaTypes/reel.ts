@@ -68,6 +68,12 @@ export const reel = defineType({
       of: [{ type: "reference", to: [{ type: "author" }] }],
     }),
     defineField({
+      name: "viewedBy",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "author" }] }],
+      title: "Viewed By",
+    }),
+    defineField({
       name: "commentCount",
       type: "number",
       title: "Comment Count",

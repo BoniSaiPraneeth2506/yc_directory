@@ -1,10 +1,11 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
 import { parseServerActionResponse } from "@/lib/utils";
 import slugify from "slugify";
 import { writeClient } from "@/sanityio/lib/write-client";
 import { revalidatePath } from "next/cache";
+import { triggerMilestoneCheck } from "@/lib/milestones";
 
 export const createPitch = async (
   state: any,
@@ -55,8 +56,40 @@ export const createPitch = async (
 
     const result = await writeClient.create({ _type: "startup", ...startup });
 
+    // Create notifications to all followers if not draft
+    if (!isDraft) {
+      try {
+        const author = await writeClient.fetch(
+          `*[_type == "author" && _id == $id][0]{ name, followers }`,
+          { id: session.id }
+        );
+
+        if (author?.followers && author.followers.length > 0) {
+          const notifications = author.followers.map((follower: any) => ({
+            _type: "notification",
+            recipient: { _type: "reference", _ref: follower._ref },
+            sender: { _type: "reference", _ref: session.id },
+            type: "new_post",
+            message: `${author.name} published a new post: "${title}"`,
+            startup: { _type: "reference", _ref: result._id },
+            read: false,
+          }));
+
+          await Promise.all(
+            notifications.map((notification: any) => writeClient.create(notification))
+          );
+        }
+
+        // Check for milestones after post creation
+        await triggerMilestoneCheck(session.id);
+      } catch (notifError) {
+        console.error("Failed to create new post notifications:", notifError);
+      }
+    }
+
     revalidatePath("/");
     revalidatePath(`/user/${session.id}`);
+    revalidatePath("/notifications");
 
     return parseServerActionResponse({
       ...result,
@@ -269,10 +302,13 @@ export const toggleUpvote = async (startupId: string) => {
             sender: { _type: "reference", _ref: session.id },
             type: "upvote",
             message: `${upvoter?.name || "Someone"} upvoted your post "${startup.title}"`,
-            relatedStartup: { _type: "reference", _ref: startupId },
+            startup: { _type: "reference", _ref: startupId },
             read: false,
           });
         }
+
+        // Check for milestones after upvote
+        await triggerMilestoneCheck(startup.author._ref);
       } catch (notifError) {
         console.error("Failed to create upvote notification:", notifError);
       }
@@ -329,11 +365,40 @@ export const toggleBookmark = async (startupId: string) => {
         .setIfMissing({ savedStartups: [] })
         .append("savedStartups", [{ _type: "reference", _ref: startupId, _key: crypto.randomUUID() }])
         .commit();
+
+      // Create save notification
+      try {
+        const [startup, saver] = await Promise.all([
+          writeClient.fetch(
+            `*[_type == "startup" && _id == $id][0]{ title, author }`,
+            { id: startupId }
+          ),
+          writeClient.fetch(
+            `*[_type == "author" && _id == $id][0]{ name }`,
+            { id: session.id }
+          ),
+        ]);
+
+        if (startup?.author?._ref !== session.id) {
+          await writeClient.create({
+            _type: "notification",
+            recipient: { _type: "reference", _ref: startup.author._ref },
+            sender: { _type: "reference", _ref: session.id },
+            type: "save",
+            message: `${saver?.name || "Someone"} saved your post "${startup.title}"`,
+            startup: { _type: "reference", _ref: startupId },
+            read: false,
+          });
+        }
+      } catch (notifError) {
+        console.error("Failed to create save notification:", notifError);
+      }
     }
 
     revalidatePath(`/startup/${startupId}`);
     revalidatePath("/");
     revalidatePath(`/user/${session.id}`);
+    revalidatePath("/notifications");
 
     return parseServerActionResponse({
       error: "",
@@ -415,6 +480,9 @@ export const toggleFollow = async (targetUserId: string) => {
           message: `${follower?.name || "Someone"} started following you`,
           read: false,
         });
+
+        // Check for follower milestone
+        await triggerMilestoneCheck(targetUserId);
       } catch (notifError) {
         console.error("Failed to create follow notification:", notifError);
       }
@@ -520,8 +588,8 @@ export const addComment = async (
             sender: { _type: "reference", _ref: session.id },
             type: "reply",
             message: `${commenter?.name || "Someone"} replied to your comment`,
-            relatedStartup: { _type: "reference", _ref: startupId },
-            relatedComment: { _type: "reference", _ref: result._id },
+            startup: { _type: "reference", _ref: startupId },
+            comment: { _type: "reference", _ref: result._id },
             read: false,
           });
         }
@@ -533,8 +601,8 @@ export const addComment = async (
           sender: { _type: "reference", _ref: session.id },
           type: "comment",
           message: `${commenter?.name || "Someone"} commented on "${startup.title}"`,
-          relatedStartup: { _type: "reference", _ref: startupId },
-          relatedComment: { _type: "reference", _ref: result._id },
+          startup: { _type: "reference", _ref: startupId },
+          comment: { _type: "reference", _ref: result._id },
           read: false,
         });
       }
@@ -984,9 +1052,38 @@ export const createReel = async (
 
     const result = await writeClient.create(reel);
 
+    // Create notifications to all followers
+    try {
+      const author = await writeClient.fetch(
+        `*[_type == "author" && _id == $id][0]{ name, followers }`,
+        { id: session.id }
+      );
+
+      if (author?.followers && author.followers.length > 0) {
+        const notifications = author.followers.map((follower: any) => ({
+          _type: "notification",
+          recipient: { _type: "reference", _ref: follower._ref },
+          sender: { _type: "reference", _ref: session.id },
+          type: "new_reel",
+          message: `${author.name} posted a new reel: "${title}"`,
+          reel: { _type: "reference", _ref: result._id },
+          read: false,
+        }));
+
+        await Promise.all(
+          notifications.map((notification: any) => writeClient.create(notification))
+        );
+      }
+// Check for milestones after reel creation
+        await triggerMilestoneCheck(session.id);
+      } catch (notifError) {
+      console.error("Failed to create new reel notifications:", notifError);
+    }
+
     revalidatePath("/reels");
     revalidatePath("/");
     revalidatePath(`/user/${session.id}`);
+    revalidatePath("/notifications");
 
     return parseServerActionResponse({
       ...result,
@@ -1000,5 +1097,327 @@ export const createReel = async (
       error: error?.message || "Failed to create reel",
       status: "ERROR",
     });
+  }
+};
+
+// Reel-specific actions
+export const toggleReelUpvote = async (reelId: string) => {
+  const session = await auth();
+
+  if (!session)
+    return parseServerActionResponse({
+      error: "Not signed in",
+      status: "ERROR",
+    });
+
+  try {
+    // Check if user has already upvoted
+    const reel = await writeClient.fetch(
+      `*[_type == "reel" && _id == $id][0]{ upvotes, upvotedBy }`,
+      { id: reelId }
+    );
+
+    const hasUpvoted = reel?.upvotedBy?.some(
+      (ref: any) => ref._ref === session.id
+    );
+
+    if (hasUpvoted) {
+      // Remove upvote - ensure it never goes below 0
+      const newUpvotes = Math.max((reel?.upvotes || 0) - 1, 0);
+      
+      await writeClient
+        .patch(reelId)
+        .set({ upvotes: newUpvotes })
+        .unset([`upvotedBy[_ref=="${session.id}"]`])
+        .commit();
+
+      // Remove from author's upvoted list
+      await writeClient
+        .patch(session.id)
+        .unset([`upvotedReels[_ref=="${reelId}"]`])
+        .commit();
+    } else {
+      // Add upvote
+      await writeClient
+        .patch(reelId)
+        .setIfMissing({ upvotes: 0, upvotedBy: [] })
+        .inc({ upvotes: 1 })
+        .append("upvotedBy", [{ _type: "reference", _ref: session.id, _key: crypto.randomUUID() }])
+        .commit();
+
+      // Add to author's upvoted list
+      await writeClient
+        .patch(session.id)
+        .setIfMissing({ upvotedReels: [] })
+        .append("upvotedReels", [{ _type: "reference", _ref: reelId, _key: crypto.randomUUID() }])
+        .commit();
+
+      // Create notification for reel upvote
+      try {
+        const [reelData, upvoter] = await Promise.all([
+          writeClient.fetch(
+            `*[_type == "reel" && _id == $id][0]{ title, author }`,
+            { id: reelId }
+          ),
+          writeClient.fetch(
+            `*[_type == "author" && _id == $id][0]{ name }`,
+            { id: session.id }
+          ),
+        ]);
+
+        if (reelData?.author?._ref !== session.id) {
+          await writeClient.create({
+            _type: "notification",
+            recipient: { _type: "reference", _ref: reelData.author._ref },
+            sender: { _type: "reference", _ref: session.id },
+            type: "reel_upvote",
+            message: `${upvoter?.name || "Someone"} liked your reel "${reelData.title}"`,
+            reel: { _type: "reference", _ref: reelId },
+            read: false,
+          });
+        }
+      } catch (notifError) {
+        console.error("Failed to create reel upvote notification:", notifError);
+      }
+    }
+
+    revalidatePath(`/reels`);
+    revalidatePath("/");
+
+    return parseServerActionResponse({
+      error: "",
+      status: "SUCCESS",
+    });
+  } catch (error: any) {
+    console.error("Reel upvote error:", error);
+
+    return parseServerActionResponse({
+      error: error?.message || "Failed to upvote reel",
+      status: "ERROR",
+    });
+  }
+};
+
+// Track reel view (only once per user)
+export const trackReelView = async (reelId: string) => {
+  const session = await auth();
+
+  if (!session) return; // Allow anonymous views but don't track
+
+  try {
+    // Check if user has already viewed this reel
+    const reel = await writeClient.fetch(
+      `*[_type == "reel" && _id == $id][0]{ viewedBy }`,
+      { id: reelId }
+    );
+
+    const hasViewed = reel?.viewedBy?.some(
+      (ref: any) => ref._ref === session.id
+    );
+
+    if (!hasViewed) {
+      // Add view
+      await writeClient
+        .patch(reelId)
+        .setIfMissing({ views: 0, viewedBy: [] })
+        .inc({ views: 1 })
+        .append("viewedBy", [{ _type: "reference", _ref: session.id, _key: crypto.randomUUID() }])
+        .commit();
+
+      revalidatePath(`/reels`);
+    }
+
+    return parseServerActionResponse({
+      error: "",
+      status: "SUCCESS",
+    });
+  } catch (error: any) {
+    console.error("Track reel view error:", error);
+
+    return parseServerActionResponse({
+      error: error?.message || "Failed to track view",
+      status: "ERROR",
+    });
+  }
+};
+
+export const toggleReelBookmark = async (reelId: string) => {
+  const session = await auth();
+
+  if (!session)
+    return parseServerActionResponse({
+      error: "Not signed in",
+      status: "ERROR",
+    });
+
+  try {
+    // Check if user has already saved
+    const author = await writeClient.fetch(
+      `*[_type == "author" && _id == $id][0]{ savedReels }`,
+      { id: session.id }
+    );
+
+    const isSaved = author?.savedReels?.some(
+      (ref: any) => ref._ref === reelId
+    );
+
+    if (isSaved) {
+      // Remove bookmark
+      await writeClient
+        .patch(session.id)
+        .unset([`savedReels[_ref=="${reelId}"]`])
+        .commit();
+    } else {
+      // Add bookmark
+      await writeClient
+        .patch(session.id)
+        .setIfMissing({ savedReels: [] })
+        .append("savedReels", [{ _type: "reference", _ref: reelId, _key: crypto.randomUUID() }])
+        .commit();
+
+      // Create save notification for reel
+      try {
+        const [reelData, saver] = await Promise.all([
+          writeClient.fetch(
+            `*[_type == "reel" && _id == $id][0]{ title, author }`,
+            { id: reelId }
+          ),
+          writeClient.fetch(
+            `*[_type == "author" && _id == $id][0]{ name }`,
+            { id: session.id }
+          ),
+        ]);
+
+        if (reelData?.author?._ref !== session.id) {
+          await writeClient.create({
+            _type: "notification",
+            recipient: { _type: "reference", _ref: reelData.author._ref },
+            sender: { _type: "reference", _ref: session.id },
+            type: "reel_save",
+            message: `${saver?.name || "Someone"} saved your reel "${reelData.title}"`,
+            reel: { _type: "reference", _ref: reelId },
+            read: false,
+          });
+        }
+      } catch (notifError) {
+        console.error("Failed to create reel save notification:", notifError);
+      }
+    }
+
+    revalidatePath(`/reels`);
+    revalidatePath("/");
+    revalidatePath(`/user/${session.id}`);
+    revalidatePath("/notifications");
+
+    return parseServerActionResponse({
+      error: "",
+      status: "SUCCESS",
+    });
+  } catch (error: any) {
+    console.error("Reel bookmark error:", error);
+
+    return parseServerActionResponse({
+      error: error?.message || "Failed to bookmark reel",
+      status: "ERROR",
+    });
+  }
+};
+
+export const addReelComment = async (
+  reelId: string,
+  content: string
+) => {
+  const session = await auth();
+
+  if (!session)
+    return parseServerActionResponse({
+      error: "Not signed in",
+      status: "ERROR",
+    });
+
+  if (!content.trim())
+    return parseServerActionResponse({
+      error: "Comment content is required",
+      status: "ERROR",
+    });
+
+  try {
+    const newComment = {
+      _type: "comment",
+      content: content.trim(),
+      author: {
+        _type: "reference",
+        _ref: session.id,
+      },
+      reel: {
+        _type: "reference", 
+        _ref: reelId,
+      },
+      createdAt: new Date(),
+      upvotes: 0,
+      upvotedBy: [],
+    };
+
+    const result = await writeClient.create(newComment);
+
+    // Increment comment count on reel
+    await writeClient
+      .patch(reelId)
+      .inc({ commentCount: 1 })
+      .commit();
+
+    // Create notification for reel comment
+    try {
+      const [reelData, commenter] = await Promise.all([
+        writeClient.fetch(
+          `*[_type == "reel" && _id == $id][0]{ title, author }`,
+          { id: reelId }
+        ),
+        writeClient.fetch(
+          `*[_type == "author" && _id == $id][0]{ name }`,
+          { id: session.id }
+        ),
+      ]);
+
+      if (reelData?.author?._ref !== session.id) {
+        await writeClient.create({
+          _type: "notification",
+          recipient: { _type: "reference", _ref: reelData.author._ref },
+          sender: { _type: "reference", _ref: session.id },
+          type: "reel_comment",
+          message: `${commenter?.name || "Someone"} commented on your reel "${reelData.title}"`,
+          reel: { _type: "reference", _ref: reelId },
+          comment: { _type: "reference", _ref: result._id },
+          read: false,
+        });
+      }
+    } catch (notifError) {
+      console.error("Failed to create reel comment notification:", notifError);
+    }
+
+    revalidatePath(`/reels`);
+    revalidatePath("/notifications");
+
+    return parseServerActionResponse({
+      ...result,
+      error: "",
+      status: "SUCCESS",
+    });
+  } catch (error: any) {
+    console.error("Add reel comment error:", error);
+
+    return parseServerActionResponse({
+      error: error?.message || "Failed to add comment",
+      status: "ERROR",
+    });
+  }
+};
+
+export const logoutUser = async () => {
+  try {
+    await signOut({ redirectTo: "/" });
+  } catch (error: any) {
+    console.error("Logout error:", error);
+    throw new Error("Failed to logout");
   }
 };

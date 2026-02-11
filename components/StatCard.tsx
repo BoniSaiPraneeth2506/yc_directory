@@ -9,13 +9,14 @@ interface StatCardProps {
     value: number;
     isPositive: boolean;
   };
+  className?: string;
 }
 
-const StatCard = ({ label, value, icon: Icon, trend }: StatCardProps) => {
+const StatCard = ({ label, value, icon: Icon, trend, className }: StatCardProps) => {
   return (
     <div className="group relative aspect-square">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-pink-100/50 rounded-3xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      <div className="relative h-full bg-white rounded-3xl p-6 border-2 border-gray-200 hover:border-primary transition-all duration-300 shadow-sm hover:shadow-xl flex flex-col justify-between">
+      <div className={`relative h-full rounded-3xl p-6 hover:border-primary transition-all duration-300 shadow-sm hover:shadow-xl flex flex-col justify-between ${className || 'bg-white border-2 border-gray-200'}`}>
         <div className="flex items-start justify-between">
           <div className="p-2 bg-gradient-to-br from-primary to-pink-600 rounded-xl shadow-lg">
             <Icon className="size-4 text-white" />

@@ -3,18 +3,20 @@ import { client } from "@/sanityio/lib/client";
 import { AUTHOR_BY_ID_QUERY } from "@/sanityio/lib/queries";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { Suspense } from "react";
 import { ProfileTabs } from "@/components/ProfileTabs";
 import UserStartups from "@/components/UserStartups";
+import { UserReels } from "@/components/UserReels";
 import UpvotedStartups from "@/components/UpvotedStartups";
+import { UpvotedReels } from "@/components/UpvotedReels";
 import SavedStartups from "@/components/SavedStartups";
+import { SavedReels } from "@/components/SavedReels";
 import UserDrafts from "@/components/UserDrafts";
 import StatsOverview from "@/components/StatsOverview";
-import FollowersList from "@/components/FollowersList";
-import FollowingList from "@/components/FollowingList";
 import { StartupCardSkeleton } from "@/components/StartupCard";
 import { FollowButton } from "@/components/FollowButton";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ProfileHeaderMenu } from "@/components/ProfileHeaderMenu";
 
 async function UserProfile({ id }: { id: string }) {
   const session = await auth();
@@ -52,13 +54,13 @@ async function UserProfile({ id }: { id: string }) {
     <>
       <section className="profile_container">
         <div className="profile_card">
-          {/* Theme Toggle - Top Right */}
-          <div className="absolute top-4 right-4">
-            <ThemeToggle />
+          {/* Top Right Controls */}
+          <div className="absolute top-4 right-4 sm:top-8 md:top-10">
+            <ProfileHeaderMenu isOwnProfile={isOwnProfile} user={user} />
           </div>
 
           <div className="profile_title">
-            <h3 className="text-24-black uppercase text-center line-clamp-1">
+            <h3 className="text-18-black uppercase text-center line-clamp-1">
               {user.name}
             </h3>
           </div>
@@ -66,37 +68,44 @@ async function UserProfile({ id }: { id: string }) {
           <Image
             src={user.image}
             alt={user.name}
-            width={220}
-            height={220}
+            width={140}
+            height={140}
             className="profile_image"
             unoptimized
           />
 
-          <p className="text-30-extrabold mt-7 text-center">
+          <p className="text-20-extrabold mt-4 text-center">
             @{user?.username}
           </p>
-          <p className="mt-1 text-center text-14-normal">{user?.bio}</p>
+          <p className="mt-1 text-center text-13-normal line-clamp-2">{user?.bio}</p>
 
           {/* Follow/Follower Stats */}
-          <div className="flex items-center justify-center gap-6 mt-4">
-            <div className="text-center">
-              <p className="text-20-semibold">{followersCount}</p>
-              <p className="text-14-normal text-gray-600">Followers</p>
-            </div>
-            <div className="text-center">
-              <p className="text-20-semibold">{followingCount}</p>
-              <p className="text-14-normal text-gray-600">Following</p>
-            </div>
+          <div className="flex items-center justify-center gap-5 mt-3">
+            <Link href={`/user/${id}/connections?tab=followers`} className="text-center hover:opacity-80 transition-opacity">
+              <p className="text-lg font-bold text-black">{followersCount}</p>
+              <p className="text-xs font-semibold text-black uppercase">Followers</p>
+            </Link>
+            <Link href={`/user/${id}/connections?tab=following`} className="text-center hover:opacity-80 transition-opacity">
+              <p className="text-lg font-bold text-black">{followingCount}</p>
+              <p className="text-xs font-semibold text-black uppercase">Following</p>
+            </Link>
           </div>
 
-          {/* Follow Button */}
+          {/* Follow and Message Buttons */}
           {!isOwnProfile && session && (
-            <div className="mt-5 flex justify-center">
+            <div className="mt-3 flex justify-center gap-2">
               <FollowButton
                 targetUserId={id}
                 initialIsFollowing={isFollowing}
                 initialFollowersCount={followersCount}
+                variant="profile"
               />
+              <Link 
+                href={`/messages?user=${id}`}
+                className="px-6 py-1.5 rounded-lg text-sm font-semibold bg-gray-200 text-gray-900 hover:bg-gray-300 transition-all flex items-center justify-center"
+              >
+                Message
+              </Link>
             </div>
           )}
         </div>
@@ -106,6 +115,11 @@ async function UserProfile({ id }: { id: string }) {
           postsContent={
             <Suspense fallback={<StartupCardSkeleton />}>
               <UserStartups id={id} />
+            </Suspense>
+          }
+          reelsContent={
+            <Suspense fallback={<div className="text-center py-4">Loading reels...</div>}>
+              <UserReels id={id} />
             </Suspense>
           }
           draftsContent={
@@ -122,35 +136,39 @@ async function UserProfile({ id }: { id: string }) {
               </Suspense>
             ) : null
           }
-          upvotedContent={
+          upvotedPostsContent={
             isOwnProfile ? (
               <>
-                {console.log('🔄 Rendering upvotedContent wrapper')}
+                {console.log('🔄 Rendering upvotedPostsContent wrapper')}
                 <Suspense fallback={<div className="text-center py-4">Loading liked posts...</div>}>
                   <UpvotedStartups id={id} />
                 </Suspense>
               </>
             ) : null
           }
-          savedContent={
+          upvotedReelsContent={
+            isOwnProfile ? (
+              <Suspense fallback={<div className="text-center py-4">Loading liked reels...</div>}>
+                <UpvotedReels id={id} />
+              </Suspense>
+            ) : null
+          }
+          savedPostsContent={
             isOwnProfile ? (
               <>
-                {console.log('🔄 Rendering savedContent wrapper')}
+                {console.log('🔄 Rendering savedPostsContent wrapper')}
                 <Suspense fallback={<div className="text-center py-4">Loading saved posts...</div>}>
                   <SavedStartups id={id} />
                 </Suspense>
               </>
             ) : null
           }
-          followersContent={
-            <Suspense fallback={<div className="text-center">Loading...</div>}>
-              <FollowersList id={id} />
-            </Suspense>
-          }
-          followingContent={
-            <Suspense fallback={<div className="text-center">Loading...</div>}>
-              <FollowingList id={id} />
-            </Suspense>
+          savedReelsContent={
+            isOwnProfile ? (
+              <Suspense fallback={<div className="text-center py-4">Loading saved reels...</div>}>
+                <SavedReels id={id} />
+              </Suspense>
+            ) : null
           }
         />
       </section>

@@ -286,6 +286,37 @@ export const SAVED_STARTUPS_BY_AUTHOR_QUERY =
   isDraft
 }`);
 
+// Optimized reel queries for profile tabs - only essential fields
+export const REELS_BY_AUTHOR_QUERY = defineQuery(`
+*[_type == "reel" && author._ref == $id] | order(_createdAt desc) {
+  _id, 
+  title,
+  thumbnail,
+  "views": coalesce(views, 0),
+  "upvotes": coalesce(upvotes, 0),
+  "commentCount": coalesce(commentCount, 0)
+}`);
+
+export const UPVOTED_REELS_BY_AUTHOR_QUERY = defineQuery(`
+*[_type == "author" && _id == $id][0].upvotedReels[]->{
+  _id, 
+  title,
+  thumbnail,
+  "views": coalesce(views, 0),
+  "upvotes": coalesce(upvotes, 0),
+  "commentCount": coalesce(commentCount, 0)
+}`);
+
+export const SAVED_REELS_BY_AUTHOR_QUERY = defineQuery(`
+*[_type == "author" && _id == $id][0].savedReels[]->{
+  _id, 
+  title,
+  thumbnail,
+  "views": coalesce(views, 0),
+  "upvotes": coalesce(upvotes, 0),
+  "commentCount": coalesce(commentCount, 0)
+}`);
+
 
 
 export const PLAYLIST_BY_SLUG_QUERY =
@@ -335,14 +366,46 @@ export const COMMENT_COUNT_QUERY = defineQuery(`
 count(*[_type == "comment" && startup._ref == $startupId])
 `);
 
+// Reel Comments Query
+export const COMMENTS_BY_REEL_QUERY = defineQuery(`
+*[_type == "comment" && reel._ref == $reelId && !defined(parentComment)] | order(_createdAt desc) {
+  _id,
+  content,
+  _createdAt,
+  upvotes,
+  upvotedBy,
+  author -> {
+    _id,
+    name,
+    username,
+    image
+  },
+  "replies": *[_type == "comment" && parentComment._ref == ^._id] | order(_createdAt asc) {
+    _id,
+    content,
+    _createdAt,
+    upvotes,
+    upvotedBy,
+    author -> {
+      _id,
+      name,
+      username,
+      image
+    }
+  }
+}
+`);
+
 // Notifications Queries
 export const NOTIFICATIONS_BY_USER_QUERY = defineQuery(`
-*[_type == "notification" && recipient._ref == $userId] | order(_createdAt desc) [0...20] {
+*[_type == "notification" && recipient._ref == $userId] | order(_createdAt desc) [0...50] {
   _id,
   type,
   message,
   read,
   _createdAt,
+  milestoneType,
+  milestoneValue,
   sender -> {
     _id,
     name,
@@ -353,6 +416,15 @@ export const NOTIFICATIONS_BY_USER_QUERY = defineQuery(`
     _id,
     title,
     slug
+  },
+  reel -> {
+    _id,
+    title,
+    slug
+  },
+  comment -> {
+    _id,
+    content
   }
 }
 `);
@@ -390,7 +462,28 @@ export const AUTHOR_GROWTH_QUERY = defineQuery(`
 *[_type == "startup" && author._ref == $id && coalesce(isDraft, false) == false] | order(_createdAt asc) {
   _createdAt,
   "views": coalesce(views, 0),
-  "upvotes": coalesce(upvotes, 0)
+  "upvotes": coalesce(upvotes, 0),
+  title
+}
+`);
+
+// Reels stats queries
+export const AUTHOR_REELS_STATS_QUERY = defineQuery(`
+*[_type == "author" && _id == $id][0]{
+  _id,
+  "totalReels": count(*[_type == "reel" && author._ref == ^._id]),
+  "totalReelViews": coalesce(math::sum(*[_type == "reel" && author._ref == ^._id].views), 0),
+  "totalReelUpvotes": coalesce(math::sum(*[_type == "reel" && author._ref == ^._id].upvotes), 0),
+  "totalComments": coalesce(math::sum(*[_type == "reel" && author._ref == ^._id].commentCount), 0)
+}
+`);
+
+export const AUTHOR_REELS_GROWTH_QUERY = defineQuery(`
+*[_type == "reel" && author._ref == $id] | order(_createdAt asc) {
+  _createdAt,
+  "views": coalesce(views, 0),
+  "upvotes": coalesce(upvotes, 0),
+  title
 }
 `);
 
@@ -411,10 +504,57 @@ export const REELS_QUERY = defineQuery(`
   thumbnail,
   duration,
   upvotes,
+  upvotedBy,
   tags,
   commentCount
 }
 `);
+
+// Enhanced reels query with user interactions  
+export const REELS_WITH_USER_QUERY = defineQuery(`
+*[_type == "reel"] | order(_createdAt desc) [0...10] {
+  _id, 
+  title, 
+  _createdAt,
+  author -> {
+    _id, 
+    name, 
+    image,
+    "isFollowing": select($userId != null => $userId in followers[]._ref, false)
+  }, 
+  "views": coalesce(views, 0),
+  "upvotes": coalesce(upvotes, 0),
+  description,
+  videoUrl,
+  thumbnail,
+  duration,
+  "commentCount": coalesce(commentCount, 0),
+  "hasUpvoted": select($userId != null => $userId in upvotedBy[]._ref, false),
+  "isSaved": select($userId != null => $userId in *[_type == "author" && _id == $userId][0].savedReels[]._ref, false)
+}`);
+
+// Add infinite scroll query for reels
+export const REELS_INFINITE_QUERY = defineQuery(`
+*[_type == "reel" && _createdAt < $lastCreatedAt] | order(_createdAt desc) [0...5] {
+  _id, 
+  title, 
+  _createdAt,
+  author -> {
+    _id, 
+    name, 
+    image,
+    "isFollowing": select($userId != null => $userId in followers[]._ref, false)
+  }, 
+  "views": coalesce(views, 0),
+  "upvotes": coalesce(upvotes, 0),
+  description,
+  videoUrl,
+  thumbnail,
+  duration,
+  "commentCount": coalesce(commentCount, 0),
+  "hasUpvoted": select($userId != null => $userId in upvotedBy[]._ref, false),
+  "isSaved": select($userId != null => $userId in *[_type == "author" && _id == $userId][0].savedReels[]._ref, false)
+}`);
 
 export const REELS_QUERY_PAGINATED = defineQuery(`
 *[_type == "reel"] | order(_createdAt desc) [$offset...$limit] {

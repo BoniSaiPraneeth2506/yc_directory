@@ -14,7 +14,7 @@ export function NotificationBell({ initialUnreadCount }: NotificationBellProps) 
   const pathname = usePathname();
   const isActive = pathname === "/notifications";
 
-  // Poll for new notifications every 30 seconds
+  // Poll for new notifications every 15 seconds (more frequent for better UX)
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -26,7 +26,7 @@ export function NotificationBell({ initialUnreadCount }: NotificationBellProps) 
       } catch (error) {
         console.error("Failed to fetch unread count:", error);
       }
-    }, 30000);
+    }, 15000);
 
     return () => clearInterval(interval);
   }, []);
@@ -45,7 +45,7 @@ export function NotificationBell({ initialUnreadCount }: NotificationBellProps) 
       />
       {unreadCount > 0 && (
         <span className="absolute -top-1 -right-1 flex items-center justify-center size-5 text-xs font-bold text-white bg-red-500 rounded-full">
-          {unreadCount > 9 ? "9+" : unreadCount}
+          {unreadCount > 99 ? "99+" : unreadCount}
         </span>
       )}
     </Link>

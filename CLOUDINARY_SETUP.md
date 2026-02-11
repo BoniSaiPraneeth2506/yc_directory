@@ -8,10 +8,10 @@ Your Cloudinary credentials have been configured! ✅
 
 ### Environment Variables (`.env.local`)
 ```env
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dnqfzr6dv
-NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=ml_default
-CLOUDINARY_API_KEY=983286293546745
-CLOUDINARY_API_SECRET=09jdemwFJga-IhfoqlIp1oaHTxE
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name_here
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_unsigned_preset_name
+CLOUDINARY_API_KEY=your_api_key_here
+CLOUDINARY_API_SECRET=your_api_secret_here
 ```
 
 ---
@@ -23,7 +23,7 @@ You **must** create an unsigned upload preset for video uploads to work from the
 ### Quick Setup (2 minutes):
 
 1. **Go to Cloudinary Dashboard:**
-   👉 https://console.cloudinary.com/settings/c-3a421d2e0c3a0d5a8b8c8c8c/upload
+   👉 https://console.cloudinary.com/settings/upload
 
 2. **Click "Add upload preset"** (blue button)
 
@@ -69,9 +69,9 @@ You **must** create an unsigned upload preset for video uploads to work from the
 Test your credentials directly:
 
 ```bash
-curl -X POST https://api.cloudinary.com/v1_1/dnqfzr6dv/upload \
+curl -X POST https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/upload \
   -F "file=@/path/to/test-video.mp4" \
-  -F "upload_preset=yc_reels_unsigned"
+  -F "upload_preset=YOUR_UPLOAD_PRESET"
 ```
 
 If it works, you'll get a JSON response with `secure_url`.
@@ -177,6 +177,76 @@ Before testing, make sure:
 - [ ] Preset name updated in `.env.local`
 - [ ] Dev server restarted
 - [ ] Tested upload at `/reels/create`
+
+---
+
+## 🔐 SECURITY ALERT: API Keys Exposed!
+
+**🚨 CRITICAL:** Your Cloudinary API keys were previously exposed in this repository and detected by GitGuardian. You **MUST** take these steps:
+
+### 1. Generate New API Keys (URGENT)
+1. Go to: https://console.cloudinary.com/settings/security
+2. Click "Regenerate API secret"
+3. **Delete the old keys** (compromised)
+4. Copy the new credentials
+
+### 2. Update Local Environment
+1. Replace placeholders in `.env.local` with your NEW credentials:
+   ```env
+   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_new_cloud_name
+   NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_unsigned_preset_name
+   CLOUDINARY_API_KEY=your_new_api_key
+   CLOUDINARY_API_SECRET=your_new_api_secret
+   ```
+2. **Never commit these to Git again!**
+
+---
+
+## 🚀 Vercel Production Deployment
+
+### Configure Environment Variables in Vercel
+
+1. **Go to Vercel Dashboard:**
+   👉 https://vercel.com/dashboard
+
+2. **Select your project** → Go to "Settings" tab
+
+3. **Click "Environment Variables"**
+
+4. **Add these variables ONE BY ONE:**
+   
+   | Name | Value | Environment |
+   |------|-------|-------------|
+   | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | your_cloud_name | Production |
+   | `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | your_unsigned_preset | Production |
+   | `CLOUDINARY_API_KEY` | your_api_key | Production |
+   | `CLOUDINARY_API_SECRET` | your_api_secret | Production |
+
+5. **Deploy again:**
+   ```bash
+   git push origin main
+   ```
+   Or click "Redeploy" in Vercel dashboard
+
+### Why This Fixes the "Administrator" Error
+
+The error "Cloudinary is not configured. Please contact the administrator" happens because:
+- Vercel doesn't have access to your local `.env.local` file
+- Environment variables must be configured in the Vercel dashboard
+- Without them, `process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` returns `undefined`
+
+---
+
+## ✅ Verification Checklist
+
+Before testing, make sure:
+- [x] Cloudinary credentials added to `.env.local`  
+- [ ] **NEW** API keys generated (old ones compromised)
+- [ ] Environment variables added to Vercel dashboard
+- [ ] Unsigned upload preset created in Cloudinary dashboard
+- [ ] Preset name updated in `.env.local` AND Vercel
+- [ ] New deployment triggered
+- [ ] Tested upload on production URL
 
 ---
 

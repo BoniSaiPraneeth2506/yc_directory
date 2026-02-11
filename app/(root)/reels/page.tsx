@@ -1,6 +1,7 @@
 import { sanityFetch } from "@/sanityio/lib/live";
-import { REELS_QUERY } from "@/sanityio/lib/queries";
+import { REELS_WITH_USER_QUERY } from "@/sanityio/lib/queries";
 import { ReelsScroller } from "@/components/ReelsScroller";
+import { auth } from "@/auth";
 import { Suspense } from "react";
 
 export const metadata = {
@@ -18,16 +19,30 @@ const ReelsLoading = () => (
   </div>
 );
 
-export default async function ReelsPage() {
+export default async function ReelsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ id?: string }>;
+}) {
+  const session = await auth();
+  const params = await searchParams;
+  const initialReelId = params.id;
+  
   const { data: reels } = await sanityFetch({ 
-    query: REELS_QUERY,
-    params: {}
+    query: REELS_WITH_USER_QUERY,
+    params: {
+      userId: session?.id || null
+    }
   });
 
   return (
     <Suspense fallback={<ReelsLoading />}>
-      <div className="fixed inset-0 top-14 bg-black">
-        <ReelsScroller initialReels={reels || []} />
+      <div className="fixed inset-0 top-14 bottom-16 bg-black">
+        <ReelsScroller 
+          initialReels={reels || []} 
+          currentUserId={session?.id || undefined}
+          initialReelId={initialReelId}
+        />
       </div>
     </Suspense>
   );

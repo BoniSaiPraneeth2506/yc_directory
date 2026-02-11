@@ -1,13 +1,33 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { ReelPlayer } from "./ReelPlayer";
+import { useState, useEffect, useRef, memo, useMemo } from "react";
+import { InstagramReelPlayer } from "./InstagramReelPlayer";
 
 interface ReelsScrollerProps {
   initialReels: any[];
+  currentUserId?: string;
+  initialReelId?: string;
 }
 
-export const ReelsScroller = ({ initialReels }: ReelsScrollerProps) => {
+export const ReelsScroller = memo(function ReelsScroller({ 
+  initialReels, 
+  currentUserId, 
+  initialReelId 
+}: ReelsScrollerProps) {
+  // Memoize reordering calculation to prevent recalculation on every render
+  const reorderedReels = useMemo(() => {
+    if (!initialReelId) return initialReels;
+    
+    const targetIndex = initialReels.findIndex(reel => reel._id === initialReelId);
+    if (targetIndex !== -1) {
+      return [
+        ...initialReels.slice(targetIndex),
+        ...initialReels.slice(0, targetIndex)
+      ];
+    }
+    return initialReels;
+  }, [initialReels, initialReelId]);
+
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -39,9 +59,9 @@ export const ReelsScroller = ({ initialReels }: ReelsScrollerProps) => {
     return () => {
       observerRef.current?.disconnect();
     };
-  }, [initialReels.length]);
+  }, [reorderedReels.length]);
 
-  if (!initialReels || initialReels.length === 0) {
+  if (!reorderedReels || reorderedReels.length === 0) {
     return (
       <div className="h-screen flex items-center justify-center bg-black">
         <div className="text-center text-white">
@@ -67,19 +87,20 @@ export const ReelsScroller = ({ initialReels }: ReelsScrollerProps) => {
         }
       `}</style>
       
-      {initialReels.map((reel, index) => (
+      {reorderedReels.map((reel, index) => (
         <div
           key={reel._id}
           data-reel
           data-index={index}
           className="h-screen"
         >
-          <ReelPlayer
+          <InstagramReelPlayer
             reel={reel}
             isActive={activeIndex === index}
+            currentUserId={currentUserId}
           />
         </div>
       ))}
     </div>
   );
-};
+});
