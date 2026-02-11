@@ -21,7 +21,7 @@ export const VideoUpload = ({ value, onChange, disabled }: VideoUploadProps) => 
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
     
-    console.log("🎬 VideoUpload Component Initialized");
+    console.log("🎬 VideoUpload Component Initialized v2.0");
     console.log("Cloudinary Cloud Name:", cloudName ? "✅ Set" : "❌ Missing");
     console.log("Cloudinary Upload Preset:", uploadPreset ? "✅ Set" : "❌ Missing");
     
