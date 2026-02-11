@@ -58,9 +58,9 @@ export const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
       {/* Modal */}
       <div className="fixed inset-x-0 bottom-0 z-50 md:inset-0 md:flex md:items-center md:justify-center">
         <div 
-          className="bg-white rounded-t-3xl md:rounded-3xl w-full md:max-w-md mx-auto overflow-hidden shadow-2xl transition-all duration-500 ease-out"
+          className="bg-white rounded-t-3xl md:rounded-3xl w-full md:max-w-md mx-auto overflow-hidden shadow-2xl transform transition-all duration-300 ease-out"
           style={{
-            animation: 'slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+            animation: 'smoothSlideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards'
           }}
         >
           {/* Header */}
@@ -99,8 +99,8 @@ export const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
                     "group relative overflow-hidden"
                   )}
                   style={{
-                    animation: `fadeInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards`,
-                    animationDelay: `${0.1 + index * 0.1}s`,
+                    animation: `smoothFadeInUp 0.25s ease-out forwards`,
+                    animationDelay: `${0.05 + index * 0.05}s`,
                     opacity: 0
                   }}
                 >
@@ -174,10 +174,10 @@ export const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
           }
         }
 
-        @keyframes slideUp {
+        @keyframes smoothSlideUp {
           from {
             transform: translateY(100%);
-            opacity: 0;
+            opacity: 0.8;
           }
           to {
             transform: translateY(0);
@@ -186,9 +186,9 @@ export const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
         }
 
         @media (min-width: 768px) {
-          @keyframes slideUp {
+          @keyframes smoothSlideUp {
             from {
-              transform: translateY(50px) scale(0.95);
+              transform: translateY(20px) scale(0.98);
               opacity: 0;
             }
             to {
@@ -198,10 +198,10 @@ export const UploadModal = ({ isOpen, onClose }: UploadModalProps) => {
           }
         }
 
-        @keyframes fadeInUp {
+        @keyframes smoothFadeInUp {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(8px);
           }
           to {
             opacity: 1;

@@ -25,7 +25,12 @@ export const comment = defineType({
       type: "reference",
       to: [{ type: "startup" }],
       title: "Startup",
-      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "reel",
+      type: "reference",
+      to: [{ type: "reel" }],
+      title: "Reel",
     }),
     defineField({
       name: "parentComment",
