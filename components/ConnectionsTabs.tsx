@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, TouchEvent, useCallback, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronLeft } from "lucide-react";
@@ -34,102 +34,6 @@ export function ConnectionsTabs({
   initialTab,
 }: ConnectionsTabsProps) {
   const [activeTab, setActiveTab] = useState<"followers" | "following">(initialTab);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const touchStartX = useRef<number>(0);
-  const touchStartY = useRef<number>(0);
-  const touchStartTime = useRef<number>(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef<boolean>(false);
-  const velocity = useRef<number>(0);
-  const lastTouchX = useRef<number>(0);
-  const lastTouchTime = useRef<number>(0);
-
-  const handleTabSwitch = useCallback((newTab: "followers" | "following") => {
-    if (newTab === activeTab || isTransitioning) return;
-    
-    setIsTransitioning(true);
-    setActiveTab(newTab);
-    
-    // Reset transition state after animation
-    setTimeout(() => setIsTransitioning(false), 300);
-  }, [activeTab, isTransitioning]);
-
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    if (isTransitioning) return;
-    
-    const touch = e.touches[0];
-    touchStartX.current = touch.clientX;
-    touchStartY.current = touch.clientY;
-    touchStartTime.current = Date.now();
-    lastTouchX.current = touch.clientX;
-    lastTouchTime.current = Date.now();
-    isDragging.current = false;
-    velocity.current = 0;
-  }, [isTransitioning]);
-
-  const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (isTransitioning) return;
-    
-    const touch = e.touches[0];
-    const currentTime = Date.now();
-    const deltaX = touch.clientX - touchStartX.current;
-    const deltaY = touch.clientY - touchStartY.current;
-    const timeDelta = currentTime - lastTouchTime.current;
-    
-    // Calculate velocity for momentum
-    if (timeDelta > 0) {
-      velocity.current = (touch.clientX - lastTouchX.current) / timeDelta;
-    }
-    
-    // Check if horizontal swipe
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
-      isDragging.current = true;
-      e.preventDefault();
-      
-      if (contentRef.current) {
-        // Apply real-time transform with resistance
-        const maxTransform = window.innerWidth * 0.3;
-        const resistance = Math.abs(deltaX) > maxTransform ? 0.3 : 1;
-        const transform = Math.max(-maxTransform, Math.min(maxTransform, deltaX * resistance));
-        
-        contentRef.current.style.transform = `translateX(${transform}px)`;
-        contentRef.current.style.transition = 'none';
-      }
-    }
-    
-    lastTouchX.current = touch.clientX;
-    lastTouchTime.current = currentTime;
-  }, [isTransitioning]);
-
-  const handleTouchEnd = useCallback(() => {
-    if (isTransitioning || !isDragging.current) return;
-    
-    const swipeDistance = lastTouchX.current - touchStartX.current;
-    const swipeTime = Date.now() - touchStartTime.current;
-    const minSwipeDistance = 50;
-    const minVelocity = 0.3;
-    
-    // Reset transform
-    if (contentRef.current) {
-      contentRef.current.style.transform = '';
-      contentRef.current.style.transition = 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)';
-    }
-    
-    // Determine if swipe should trigger tab change
-    const shouldSwitch = Math.abs(swipeDistance) > minSwipeDistance || 
-                        Math.abs(velocity.current) > minVelocity;
-    
-    if (shouldSwitch) {
-      if (swipeDistance > 0 && activeTab === 'following') {
-        handleTabSwitch('followers');
-      } else if (swipeDistance < 0 && activeTab === 'followers') {
-        handleTabSwitch('following');
-      }
-    }
-    
-    isDragging.current = false;
-  }, [activeTab, isTransitioning, handleTabSwitch]);
 
   const tabs = [
     { id: "followers" as const, label: "Followers", count: followers.length },
@@ -159,8 +63,7 @@ export function ConnectionsTabs({
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => handleTabSwitch(tab.id)}
-              disabled={isTransitioning}
+              onClick={() => setActiveTab(tab.id)}
               className={cn(
                 "flex-1 py-3 text-sm font-semibold transition-colors duration-300 relative z-10",
                 activeTab === tab.id
@@ -191,18 +94,8 @@ export function ConnectionsTabs({
       </div>
 
       {/* Content with smooth transition */}
-      <div 
-        ref={containerRef}
-        className="max-w-2xl mx-auto"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        style={{ touchAction: 'pan-y' }}
-      >
-        <div 
-          ref={contentRef}
-          className="transition-all duration-300 ease-out"
-        >
+      <div className="max-w-2xl mx-auto">
+        <div className="transition-all duration-300 ease-out">
           {currentList.length === 0 ? (
             <div className="text-center py-12 px-4">
               <p className="text-gray-500">
