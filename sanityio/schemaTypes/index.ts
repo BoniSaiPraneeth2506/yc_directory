@@ -5,7 +5,9 @@ import { playlist } from './playlist'
 import { comment } from './comment'
 import { notification } from './notification'
 import { reel } from './reel'
+import { conversation } from './conversation'
+import { message } from './message'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [author,startup,playlist,comment,notification,reel],
+  types: [author,startup,playlist,comment,notification,reel,conversation,message],
 }

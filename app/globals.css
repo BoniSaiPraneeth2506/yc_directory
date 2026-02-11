@@ -24,6 +24,14 @@
 
   html {
     scroll-behavior: smooth;
+    /* Mobile viewport height fix */
+    height: -webkit-fill-available;
+  }
+
+  body {
+    /* Prevent layout shift when keyboard opens on mobile */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
   }
 }
 
@@ -39,6 +47,23 @@
 
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Mobile keyboard and safe area utilities */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Mobile chat optimizations */
+  @supports (-webkit-touch-callout: none) {
+    .mobile-chat-container {
+      height: -webkit-fill-available;
+      min-height: -webkit-fill-available;
+    }
   }
 
   .text-30-extrabold {

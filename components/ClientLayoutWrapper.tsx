@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BottomNav } from "./BottomNav";
 import { UploadModal } from "./UploadModal";
+import { SocketProvider } from "./providers/SocketProvider";
 
 interface ClientLayoutWrapperProps {
   children: React.ReactNode;
@@ -16,7 +17,7 @@ export const ClientLayoutWrapper = ({
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   return (
-    <>
+    <SocketProvider>
       <div className="pb-20">{children}</div>
       <BottomNav
         userId={userId}
@@ -26,6 +27,6 @@ export const ClientLayoutWrapper = ({
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
       />
-    </>
+    </SocketProvider>
   );
 };

@@ -576,3 +576,89 @@ export const REELS_QUERY_PAGINATED = defineQuery(`
   commentCount
 }
 `);
+
+// Chat Queries
+export const CONVERSATIONS_BY_USER_QUERY = defineQuery(`
+*[_type == "conversation" && $userId in participants[]._ref] | order(lastMessageAt desc) {
+  _id,
+  participants[]-> {
+    _id,
+    name,
+    image,
+    username,
+    bio
+  },
+  lastMessage-> {
+    _id,
+    content,
+    image,
+    createdAt,
+    sender-> {
+      _id,
+      name
+    },
+    readBy[]-> {
+      _id
+    }
+  },
+  lastMessageAt,
+  createdAt
+}
+`);
+
+export const CONVERSATION_BY_PARTICIPANTS_QUERY = defineQuery(`
+*[_type == "conversation" && $user1 in participants[]._ref && $user2 in participants[]._ref][0] {
+  _id,
+  participants[]-> {
+    _id,
+    name,
+    image,
+    username,
+    bio
+  },
+  lastMessage-> {
+    _id,
+    content,
+    image,
+    createdAt,
+    sender-> {
+      _id,
+      name
+    }
+  },
+  lastMessageAt,
+  createdAt
+}
+`);
+
+export const MESSAGES_BY_CONVERSATION_QUERY = defineQuery(`
+*[_type == "message" && conversation._ref == $conversationId] | order(createdAt asc) {
+  _id,
+  content,
+  image,
+  sender-> {
+    _id,
+    name,
+    image,
+    username
+  },
+  readBy[]-> {
+    _id
+  },
+  createdAt
+}
+`);
+
+export const SEARCH_USERS_QUERY = defineQuery(`
+*[_type == "author" && (
+  lower(name) match lower($search) || 
+  lower(username) match lower($search) || 
+  lower(email) match lower($search)
+)] | order(name asc) {
+  _id,
+  name,
+  image,
+  username,
+  bio
+}
+`);
