@@ -269,7 +269,7 @@ export const InstagramReelPlayer = ({
     <>
       <div
         ref={containerRef}
-        className="relative h-screen w-full bg-black snap-start snap-always flex items-center justify-center"
+        className="relative h-full w-full bg-black flex items-center justify-center"
         onClick={handleContainerClick}
         onMouseMove={() => setShowControls(true)}
       >
@@ -351,7 +351,7 @@ export const InstagramReelPlayer = ({
         </div>
 
         {/* Bottom content area */}
-        <div className="absolute bottom-28 sm:bottom-24 left-4 right-20 z-10 pb-3">
+        <div className="absolute bottom-20 left-4 right-20 z-10 pb-2">
           <div className="space-y-3">
             {/* User info with follow button - Instagram style at bottom */}
             <div className="flex items-center gap-3 mb-2">
@@ -425,7 +425,7 @@ export const InstagramReelPlayer = ({
         </div>
 
         {/* Right side actions - Instagram style */}
-        <div className="absolute bottom-28 sm:bottom-24 right-4 flex flex-col items-center gap-5 z-10 pb-3">
+        <div className="absolute bottom-20 right-4 flex flex-col items-center gap-5 z-10 pb-2">
           {/* Like Button */}
           {currentUserId && (
             <ReelLikeButton

@@ -75,7 +75,7 @@ export const ReelsScroller = memo(function ReelsScroller({
   return (
     <div
       ref={containerRef}
-      className="h-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar"
+      className="h-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar"
       style={{
         scrollbarWidth: "none",
         msOverflowStyle: "none",
@@ -92,7 +92,7 @@ export const ReelsScroller = memo(function ReelsScroller({
           key={reel._id}
           data-reel
           data-index={index}
-          className="h-screen"
+          className="h-full snap-start snap-always"
         >
           <InstagramReelPlayer
             reel={reel}
