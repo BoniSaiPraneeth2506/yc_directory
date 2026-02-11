@@ -1,13 +1,14 @@
 import { defineField, defineType } from "sanity";
 
-export const startup = defineType({
-  name: "startup",
-  title: "Startup",
+export const reel = defineType({
+  name: "reel",
+  title: "Reel",
   type: "document",
   fields: [
     defineField({
       name: "title",
       type: "string",
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "slug",
@@ -22,34 +23,39 @@ export const startup = defineType({
       to: { type: "author" },
     }),
     defineField({
-      name: "views",
-      type: "number",
-    }),
-    defineField({
       name: "description",
       type: "text",
+      validation: (Rule) => Rule.required().max(500),
+    }),
+    defineField({
+      name: "videoUrl",
+      type: "url",
+      title: "Video URL",
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "thumbnail",
+      type: "url",
+      title: "Thumbnail Image",
     }),
     defineField({
       name: "category",
       type: "string",
-      validation: (Rule) =>
-        Rule.min(1).max(20).required().error("Please enter a category"),
-    }),
-    defineField({
-      name: "image",
-      type: "url",
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: "pitchVideo",
-      type: "url",
-      title: "Pitch Video",
-      description: "Video URL for pitch reel (Cloudinary, YouTube, etc.)",
+      name: "tags",
+      type: "array",
+      of: [{ type: "string" }],
+      options: {
+        layout: "tags",
+      },
+      validation: (Rule) => Rule.max(5).error("Maximum 5 tags allowed"),
     }),
     defineField({
-      name: "pitch",
-      type: "array",
-      of: [{ type: "block" }],
+      name: "views",
+      type: "number",
+      initialValue: 0,
     }),
     defineField({
       name: "upvotes",
@@ -62,30 +68,15 @@ export const startup = defineType({
       of: [{ type: "reference", to: [{ type: "author" }] }],
     }),
     defineField({
-      name: "tags",
-      type: "array",
-      of: [{ type: "string" }],
-      options: {
-        layout: "tags",
-      },
-      validation: (Rule) => Rule.max(5).error("Maximum 5 tags allowed"),
-    }),
-    defineField({
-      name: "isDraft",
-      type: "boolean",
-      title: "Draft",
-      initialValue: false,
-    }),
-    defineField({
-      name: "scheduledFor",
-      type: "datetime",
-      title: "Scheduled Publish Date",
-    }),
-    defineField({
       name: "commentCount",
       type: "number",
       title: "Comment Count",
       initialValue: 0,
+    }),
+    defineField({
+      name: "duration",
+      type: "number",
+      title: "Video Duration (seconds)",
     }),
   ],
 });

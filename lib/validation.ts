@@ -19,3 +19,10 @@ export const formSchema = z.object({
     }),
   pitch: z.string().min(10),
 });
+
+export const reelFormSchema = z.object({
+  title: z.string().min(3).max(100),
+  description: z.string().min(10).max(500),
+  category: z.string().min(3).max(20),
+  videoUrl: z.string().url(),
+});

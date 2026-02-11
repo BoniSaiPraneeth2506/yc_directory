@@ -393,3 +393,46 @@ export const AUTHOR_GROWTH_QUERY = defineQuery(`
   "upvotes": coalesce(upvotes, 0)
 }
 `);
+
+// Reels queries - dedicated reel content
+export const REELS_QUERY = defineQuery(`
+*[_type == "reel"] | order(_createdAt desc) {
+  _id, 
+  title, 
+  slug,
+  _createdAt,
+  author -> {
+    _id, name, image, bio
+  }, 
+  views,
+  description,
+  category,
+  videoUrl,
+  thumbnail,
+  duration,
+  upvotes,
+  tags,
+  commentCount
+}
+`);
+
+export const REELS_QUERY_PAGINATED = defineQuery(`
+*[_type == "reel"] | order(_createdAt desc) [$offset...$limit] {
+  _id, 
+  title, 
+  slug,
+  _createdAt,
+  author -> {
+    _id, name, image, bio
+  }, 
+  views,
+  description,
+  category,
+  videoUrl,
+  thumbnail,
+  duration,
+  upvotes,
+  tags,
+  commentCount
+}
+`);

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { auth, signOut, signIn } from "@/auth";
-import { BadgePlus, LogOut } from "lucide-react";
+import { Search, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationBell } from "@/components/NotificationBell";
 import { client } from "@/sanityio/lib/client";
@@ -24,18 +24,21 @@ const Navbar = async () => {
   }
 
   return (
-    <header className="px-5 py-3 bg-white shadow-sm font-work-sans">
-      <nav className="flex justify-between items-center">
+    <header className="px-5 py-3 bg-white shadow-sm font-work-sans border-b border-gray-100">
+      <nav className="flex justify-between items-center max-w-screen-xl mx-auto">
         <Link href="/">
           <Image src="/logo.png" alt="logo" width={144} height={30} />
         </Link>
 
-        <div className="flex items-center gap-5 text-black">
+        <div className="flex items-center gap-4 text-black">
           {session && session?.user ? (
             <>
-              <Link href="/startup/create">
-                <span className="max-sm:hidden">Create</span>
-                <BadgePlus className="size-6 sm:hidden" />
+              <Link 
+                href="/?query=" 
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Search"
+              >
+                <Search className="size-5" />
               </Link>
 
               <NotificationBell initialUnreadCount={unreadCount} />
@@ -46,15 +49,18 @@ const Navbar = async () => {
 
                   await signOut({ redirectTo: "/" });
                 }}
+                className="max-sm:hidden"
               >
-                <button type="submit">
-                  <span className="max-sm:hidden">Logout</span>
-                  <LogOut className="size-6 sm:hidden text-red-500" />
+                <button 
+                  type="submit"
+                  className="text-sm text-gray-600 hover:text-red-500 transition-colors"
+                >
+                  Logout
                 </button>
               </form>
 
-              <Link href={`/user/${session?.id}`}>
-                <Avatar className="size-10">
+              <Link href={`/user/${session?.id}`} className="sm:hidden">
+                <Avatar className="size-9">
                   <AvatarImage
                     src={session?.user?.image || ""}
                     alt={session?.user?.name || ""}
@@ -71,7 +77,7 @@ const Navbar = async () => {
                 await signIn("github");
               }}
             >
-              <button type="submit">Login</button>
+              <button type="submit" className="text-sm font-medium">Login</button>
             </form>
           )}
         </div>

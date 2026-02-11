@@ -938,3 +938,67 @@ export const publishDraft = async (startupId: string) => {
     });
   }
 };
+
+export const createReel = async (
+  state: any,
+  form: FormData,
+  tags: string[] = [],
+  videoData: { url: string; thumbnail?: string; duration?: number }
+) => {
+  const session = await auth();
+
+  if (!session)
+    return parseServerActionResponse({
+      error: "Not signed in",
+      status: "ERROR",
+    });
+
+  const { title, description, category } = Object.fromEntries(
+    Array.from(form).filter(([key]) => key !== "tags"),
+  );
+
+  const slug = slugify(title as string, { lower: true, strict: true });
+
+  try {
+    const reel = {
+      _type: "reel",
+      title,
+      description,
+      category,
+      videoUrl: videoData.url,
+      thumbnail: videoData.thumbnail || videoData.url,
+      duration: videoData.duration || 0,
+      slug: {
+        _type: "slug",
+        current: slug,
+      },
+      author: {
+        _type: "reference",
+        _ref: session?.id,
+      },
+      tags: tags || [],
+      views: 0,
+      upvotes: 0,
+      commentCount: 0,
+    };
+
+    const result = await writeClient.create(reel);
+
+    revalidatePath("/reels");
+    revalidatePath("/");
+    revalidatePath(`/user/${session.id}`);
+
+    return parseServerActionResponse({
+      ...result,
+      error: "",
+      status: "SUCCESS",
+    });
+  } catch (error: any) {
+    console.error("Create reel error:", error);
+
+    return parseServerActionResponse({
+      error: error?.message || "Failed to create reel",
+      status: "ERROR",
+    });
+  }
+};
