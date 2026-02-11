@@ -351,10 +351,10 @@ export const InstagramReelPlayer = ({
         </div>
 
         {/* Bottom content area */}
-        <div className="absolute bottom-[72px] left-4 right-20 z-10 pb-1">
-          <div className="space-y-3">
+        <div className="absolute bottom-[38px] left-4 right-20 z-10">
+          <div className="space-y-1.5">
             {/* User info with follow button - Instagram style at bottom */}
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-1">
               <Link href={`/user/${reel.author._id}`} className="flex items-center gap-2">
                 <Avatar className="size-8 border-2 border-white">
                   <AvatarImage src={reel.author.image} alt={reel.author.name} />
@@ -425,7 +425,7 @@ export const InstagramReelPlayer = ({
         </div>
 
         {/* Right side actions - Instagram style */}
-        <div className="absolute bottom-20 right-4 flex flex-col items-center gap-5 z-10 pb-2">
+        <div className="absolute bottom-[38px] right-4 flex flex-col items-center gap-5 z-10 pb-2">
           {/* Like Button */}
           {currentUserId && (
             <ReelLikeButton
