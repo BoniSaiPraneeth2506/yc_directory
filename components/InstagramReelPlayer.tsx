@@ -351,7 +351,7 @@ export const InstagramReelPlayer = ({
         </div>
 
         {/* Bottom content area */}
-        <div className="absolute bottom-20 left-4 right-20 z-10 pb-2">
+        <div className="absolute bottom-[72px] left-4 right-20 z-10 pb-1">
           <div className="space-y-3">
             {/* User info with follow button - Instagram style at bottom */}
             <div className="flex items-center gap-3 mb-2">
