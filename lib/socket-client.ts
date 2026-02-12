@@ -43,7 +43,14 @@ class SocketClient {
       return window.__socketClient;
     }
     
-    const socketUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    // Use NEXT_PUBLIC_SOCKET_URL for production socket server
+    // Falls back to NEXT_PUBLIC_SITE_URL or current origin
+    const socketUrl = 
+      process.env.NEXT_PUBLIC_SOCKET_URL || 
+      process.env.NEXT_PUBLIC_SITE_URL || 
+      window.location.origin;
+
+    console.log("🔌 Connecting to Socket.io server:", socketUrl);
 
     const socket = io(socketUrl, {
       path: "/api/socket/io",
