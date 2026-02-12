@@ -18,18 +18,8 @@ console.log("🌍 Environment:", process.env.NODE_ENV);
 console.log("🔌 Port:", PORT);
 console.log("⚡ FORCED REDEPLOY - Fixing Railway auto-deploy issue");
 
-// Create HTTP server and attach Socket.io (proper pattern)
-const httpServer = createServer((req, res) => {
-  // ONLY handle health check endpoints - let Socket.io handle everything else
-  if (req.url === '/' || req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Socket.io server is running!\nPath: /api/socket/io\nStatus: OK');
-    return;
-  }
-  
-  // Let Socket.io handle /api/socket/io and all other paths
-  // Don't respond here - let Socket.io middleware handle it
-});
+// Create bare HTTP server - let Socket.io handle ALL requests  
+const httpServer = createServer();
 
 const io = new Server(httpServer, {
   path: "/api/socket/io",
