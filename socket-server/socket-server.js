@@ -128,7 +128,7 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log("========================================");
   console.log("🚀 Socket.io Server Started");
   console.log("========================================");
@@ -140,4 +140,21 @@ server.listen(PORT, () => {
   console.log("========================================");
   console.log(`✅ Ready for connections!`);
   console.log("========================================");
+});
+
+// Error handling
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Keep process alive
+process.on('SIGTERM', () => {
+  console.log('⚠️ SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+  });
 });
