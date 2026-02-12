@@ -38,43 +38,6 @@ console.log("   Path:", "/api/socket/io");
 console.log("   CORS:", allowedOrigins);
 console.log("   Transports:", ["websocket", "polling"]);
 
-// CRITICAL: MAXIMUM ENGINE.IO LOGGING - See EXACTLY what happens with CORS
-io.engine.on("initial_headers", (headers, request) => {
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("🔧 ENGINE.IO: INITIAL HEADERS EVENT");
-  console.log("   Request URL:", request.url);
-  console.log("   Request Method:", request.method);
-  console.log("   Origin Header:", request.headers.origin || "❌ NONE");
-  console.log("   User-Agent:", request.headers['user-agent']);
-  console.log("   All Request Headers:", JSON.stringify(request.headers, null, 2));
-  console.log("   Headers BEFORE Socket.io CORS:", JSON.stringify(headers, null, 2));
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-});
-
-io.engine.on("headers", (headers, request) => {
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("🔧 ENGINE.IO: HEADERS EVENT (ACTUAL RESPONSE)");
-  console.log("   Request URL:", request.url);
-  console.log("   Request Method:", request.method);
-  console.log("   Origin Header:", request.headers.origin || "❌ NONE");
-  console.log("   Response Headers BEING SENT:", JSON.stringify(headers, null, 2));
-  console.log("   ✅ Has Access-Control-Allow-Origin?", !!headers['access-control-allow-origin']);
-  console.log("   ✅ Access-Control-Allow-Origin Value:", headers['access-control-allow-origin'] || "❌ MISSING");
-  console.log("   ✅ Has Access-Control-Allow-Credentials?", !!headers['access-control-allow-credentials']);
-  console.log("   ✅ Access-Control-Allow-Credentials Value:", headers['access-control-allow-credentials'] || "❌ MISSING");
-  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-});
-
-io.engine.on("connection_error", (err) => {
-  console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.error("❌ ENGINE.IO CONNECTION ERROR");
-  console.error("   Error Code:", err.code);
-  console.error("   Error Message:", err.message);
-  console.error("   Error Context:", JSON.stringify(err.context, null, 2));
-  console.error("   Full Error:", err);
-  console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-});
-
 // Track online users: userId -> Set of socket IDs
 const onlineUsers = new Map();
 
@@ -210,8 +173,45 @@ io.listen(PORT, () => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(`✅ Socket.io Server READY for connections!`);
   console.log(`✅ Waiting for first connection from client...`);
-  console.log(`✅ Watch for ENGINE.IO events above when client connects`);
+  console.log(`✅ Watch for ENGINE.IO events below when client connects`);
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+  // Setup Engine.IO event listeners AFTER server is listening (when io.engine exists)
+  io.engine.on("initial_headers", (headers, request) => {
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("🔧 ENGINE.IO: INITIAL HEADERS EVENT");
+    console.log("   Request URL:", request.url);
+    console.log("   Request Method:", request.method);
+    console.log("   Origin Header:", request.headers.origin || "❌ NONE");
+    console.log("   User-Agent:", request.headers['user-agent']);
+    console.log("   All Request Headers:", JSON.stringify(request.headers, null, 2));
+    console.log("   Headers BEFORE Socket.io CORS:", JSON.stringify(headers, null, 2));
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  });
+
+  io.engine.on("headers", (headers, request) => {
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("🔧 ENGINE.IO: HEADERS EVENT (ACTUAL RESPONSE)");
+    console.log("   Request URL:", request.url);
+    console.log("   Request Method:", request.method);
+    console.log("   Origin Header:", request.headers.origin || "❌ NONE");
+    console.log("   Response Headers BEING SENT:", JSON.stringify(headers, null, 2));
+    console.log("   ✅ Has Access-Control-Allow-Origin?", !!headers['access-control-allow-origin']);
+    console.log("   ✅ Access-Control-Allow-Origin Value:", headers['access-control-allow-origin'] || "❌ MISSING");
+    console.log("   ✅ Has Access-Control-Allow-Credentials?", !!headers['access-control-allow-credentials']);
+    console.log("   ✅ Access-Control-Allow-Credentials Value:", headers['access-control-allow-credentials'] || "❌ MISSING");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  });
+
+  io.engine.on("connection_error", (err) => {
+    console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.error("❌ ENGINE.IO CONNECTION ERROR");
+    console.error("   Error Code:", err.code);
+    console.error("   Error Message:", err.message);
+    console.error("   Error Context:", JSON.stringify(err.context, null, 2));
+    console.error("   Full Error:", err);
+    console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  });
 });
 
 // Error handling
