@@ -522,15 +522,8 @@ export function ChatWindow({
 
         {/* Typing indicator */}
         {otherUserTyping && (
-          <div className="flex items-end gap-2 mb-3 px-4">
-            <Image
-              src={otherUser.image || "/placeholder-user.png"}
-              alt={otherUser.name}
-              width={28}
-              height={28}
-              className="rounded-full object-cover flex-shrink-0"
-            />
-            <div className="bg-gray-100 rounded-2xl rounded-bl-md px-4 py-2.5">
+          <div className="flex items-end mb-3 px-4">
+            <div className="bg-gray-100 rounded-2xl px-4 py-2.5">
               <div className="flex items-center gap-1">
                 <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                 <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
