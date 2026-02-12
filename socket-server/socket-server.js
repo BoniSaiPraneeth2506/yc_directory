@@ -15,18 +15,9 @@ const allowedOrigins = process.env.CLIENT_URL
 
 console.log("🔒 CORS allowed origins:", allowedOrigins);
 
-// Simple HTTP server for health checks
-// Socket.io will handle its own paths (/api/socket/io)
-const server = createServer((req, res) => {
-  // Let Socket.io handle its own paths with CORS
-  if (req.url?.startsWith("/api/socket/io")) {
-    return; // Socket.io will handle this with proper CORS headers
-  }
-  
-  // Health check for other paths
-  res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end("Socket.io server running ✅");
-});
+// Create HTTP server WITHOUT a request handler
+// Let Socket.io attach its handlers first
+const server = createServer();
 
 const io = new Server(server, {
   path: "/api/socket/io",
@@ -132,6 +123,16 @@ io.on("connection", (socket) => {
       }
     }
   });
+});
+
+// Add health check handler for non-Socket.io paths
+// Socket.io handles /api/socket/io automatically
+server.on('request', (req, res) => {
+  // Socket.io already handled its paths, this only catches others
+  if (!req.url?.startsWith("/api/socket/io")) {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("Socket.io server running ✅");
+  }
 });
 
 server.listen(PORT, "0.0.0.0", () => {
