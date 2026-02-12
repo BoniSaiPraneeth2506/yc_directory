@@ -15,9 +15,12 @@ const allowedOrigins = process.env.CLIENT_URL
 
 console.log("🔒 CORS allowed origins:", allowedOrigins);
 
-// Socket.io will handle all requests - no HTTP handler needed
-const { Server: HttpServer } = require("http");
-const httpServer = new HttpServer();
+// Create HTTP server - Socket.io will intercept its paths automatically
+const httpServer = createServer((req, res) => {
+  // Simple response for health checks
+  res.writeHead(200);
+  res.end("ok");
+});
 
 const io = new Server(httpServer, {
   path: "/api/socket/io",
