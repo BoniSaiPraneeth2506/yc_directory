@@ -16,6 +16,24 @@ const allowedOrigins = process.env.CLIENT_URL
 console.log("🔒 CORS allowed origins:", allowedOrigins);
 
 const server = createServer((req, res) => {
+  // Handle CORS for all HTTP requests
+  const origin = req.headers.origin;
+  
+  if (origin && (allowedOrigins.includes(origin) || allowedOrigins.includes("*"))) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  }
+  
+  // Handle preflight OPTIONS request
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+  
+  // Regular request
   res.writeHead(200, { "Content-Type": "text/plain" });
   res.end("Socket.io server running ✅");
 });
