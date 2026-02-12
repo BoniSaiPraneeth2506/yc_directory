@@ -1,6 +1,6 @@
 /**
  * Standalone Socket.io Server for Production
- * Deploy this to Railway, Render, or Fly.io
+ * Deploy this to Railway, Render, or Fly.io  
  */
 
 const { createServer } = require("http");
@@ -16,10 +16,21 @@ const allowedOrigins = process.env.CLIENT_URL
 console.log("🔒 CORS allowed origins:", allowedOrigins);
 console.log("🌍 Environment:", process.env.NODE_ENV);
 console.log("🔌 Port:", PORT);
-console.log("⚡ FORCED REDEPLOY - Fixing Railway auto-deploy issue");
+console.log("⚡ MINIMAL HTTP SERVER + SOCKET.IO PATTERN");
 
-// Create bare HTTP server - let Socket.io handle ALL requests  
-const httpServer = createServer();
+// HTTP server with minimal request handling
+const httpServer = createServer((req, res) => {
+  console.log(`📨 Request: ${req.method} ${req.url}`);
+  
+  // Health check  
+  if (req.url === '/' || req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Socket.io server is running!\nPath: /api/socket/io\nStatus: OK');
+    return;
+  }
+  
+  // For all other paths, don't respond - let Socket.io handle via middleware
+});
 
 const io = new Server(httpServer, {
   path: "/api/socket/io",
