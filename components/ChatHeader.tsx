@@ -19,8 +19,6 @@ export function ChatHeader({ otherUser, currentUserId }: ChatHeaderProps) {
   const { onlineUsers, socket, isConnected } = useSocket();
   const isOnline = onlineUsers.has(otherUser._id);
 
-  console.log("🟢 ChatHeader - Other user online status:", otherUser._id, isOnline, "| Online users:", Array.from(onlineUsers));
-
   return (
     <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-20">
       <div className="flex items-center gap-3 px-4 py-3">
