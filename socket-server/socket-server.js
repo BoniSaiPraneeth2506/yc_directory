@@ -3,6 +3,7 @@
  * Deploy this to Railway, Render, or Fly.io
  */
 
+const { createServer } = require("http");
 const { Server } = require("socket.io");
 
 const PORT = process.env.PORT || 3001;
@@ -14,9 +15,14 @@ const allowedOrigins = process.env.CLIENT_URL
 
 console.log("🔒 CORS allowed origins:", allowedOrigins);
 
-// Create Socket.io server
-// Socket.io creates and manages its own HTTP server when initialized without one
-const io = new Server({
+// Create minimal HTTP server
+const httpServer = createServer((req, res) => {
+  res.writeHead(404);
+  res.end();
+});
+
+// Attach Socket.io to existing HTTP server
+const io = new Server(httpServer, {
   path: "/api/socket/io",
   cors: {
     origin: allowedOrigins,
@@ -29,8 +35,6 @@ const io = new Server({
   transports: ["websocket", "polling"],
   allowEIO3: true, // Backwards compatibility
   serveClient: false,
-  // Add explicit handling
-  connectTimeout: 45000,
 });
 
 // Track online users: userId -> Set of socket IDs
@@ -123,13 +127,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start listening - Socket.io's HTTP server listens directly
-io.listen(PORT, {
-  host: "0.0.0.0"
-});
-
-// Log startup info after starting
-setTimeout(() => {
+httpServer.listen(PORT, "0.0.0.0", () => {
   console.log("========================================");
   console.log("🚀 Socket.io Server Started");
   console.log("========================================");
@@ -141,7 +139,7 @@ setTimeout(() => {
   console.log("========================================");
   console.log(`✅ Ready for connections!`);
   console.log("========================================");
-}, 100);
+});
 
 // Error handling
 process.on('uncaughtException', (error) => {
@@ -154,9 +152,8 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Keep process alive
 process.on('SIGTERM', () => {
-  console.log('⚠️ SIGTERM signal received: closing server');
-  io.close(() => {
-    console.log('Socket.io server closed');
-    process.exit(0);
+  console.log('⚠️ SIGTERM signal received: closing HTTP server');
+  httpServer.close(() => {
+    console.log('HTTP server closed');
   });
 });
