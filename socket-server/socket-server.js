@@ -1,6 +1,6 @@
 /**
- * Standalone Socket.io Server for Production
- * Deploy this to Railway, Render, or Fly.io  
+ * ULTRA-BASIC Socket.io Server
+ * Absolute minimal config that should work everywhere
  */
 
 const { createServer } = require("http");
@@ -8,31 +8,36 @@ const { Server } = require("socket.io");
 
 const PORT = process.env.PORT || 3001;
 
-// Parse allowed origins (supports multiple, comma-separated)
-const allowedOrigins = process.env.CLIENT_URL 
-  ? process.env.CLIENT_URL.split(',').map(url => url.trim())
-  : ["http://localhost:3000"];
+console.log("🚀 Starting ultra-basic Socket.io server on port:", PORT);
 
-console.log("🔒 CORS allowed origins:", allowedOrigins);
-console.log("🌍 Environment:", process.env.NODE_ENV);
-console.log("🔌 Port:", PORT);
-console.log("⚡ MINIMAL HTTP SERVER + SOCKET.IO PATTERN");
+// Absolute minimal HTTP server
+const httpServer = createServer();
 
-// HTTP server with minimal request handling
-const httpServer = createServer((req, res) => {
-  console.log(`📨 Request: ${req.method} ${req.url}`);
-  
-  // Health check  
-  if (req.url === '/' || req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Socket.io server is running!\nPath: /api/socket/io\nStatus: OK');
-    return;
+// Most basic Socket.io configuration possible
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",  // Allow all origins for testing
+    credentials: true
   }
-  
-  // For all other paths, don't respond - let Socket.io handle via middleware
 });
 
-const io = new Server(httpServer, {
+console.log("✅ Socket.io configured with default settings");
+
+// Basic connection handling
+io.on("connection", (socket) => {
+  console.log("🔌 Client connected:", socket.id);
+  
+  socket.on("disconnect", () => {
+    console.log("🔌 Client disconnected:", socket.id);
+  });
+});
+
+// Start server
+httpServer.listen(PORT, () => {
+  console.log(`🌍 Server listening on port ${PORT}`);
+  console.log(`📡 Socket.io path: /socket.io/ (default)`);
+  console.log("✅ Ready for connections!");
+});
   path: "/api/socket/io",
   cors: {
     origin: allowedOrigins.length === 1 && allowedOrigins[0] === "*" 

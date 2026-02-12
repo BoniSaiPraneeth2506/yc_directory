@@ -51,12 +51,12 @@ class SocketClient {
       window.location.origin;
 
     console.log("🔌 Connecting to Socket.io server:", socketUrl);
-    console.log("   Path:", "/api/socket/io");
+    console.log("   Path:", "/socket.io/ (default)");
     console.log("   Transports:", ["polling"]);
     console.log("   withCredentials:", true);
 
     const socket = io(socketUrl, {
-      path: "/api/socket/io",
+      // path: "/socket.io/",  // Use default path
       addTrailingSlash: false,
       transports: ["polling"], // Polling only - more stable
       reconnection: true,
