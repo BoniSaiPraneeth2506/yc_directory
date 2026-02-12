@@ -3,6 +3,7 @@
  * Deploy this to Railway, Render, or Fly.io
  */
 
+const { createServer } = require("http");
 const { Server } = require("socket.io");
 
 const PORT = process.env.PORT || 3001;
@@ -17,8 +18,9 @@ console.log("🌍 Environment:", process.env.NODE_ENV);
 console.log("🔌 Port:", PORT);
 console.log("⚡ FORCED REDEPLOY - Fixing Railway auto-deploy issue");
 
-// Let Socket.io create and manage its own HTTP server
-const io = new Server({
+// Create HTTP server and attach Socket.io (proper pattern)
+const httpServer = createServer();
+const io = new Server(httpServer, {
   path: "/api/socket/io",
   cors: {
     origin: allowedOrigins.length === 1 && allowedOrigins[0] === "*" 
@@ -143,8 +145,8 @@ io.on("connection", (socket) => {
   });
 });
 
-// Let Socket.io listen and create the HTTP server
-io.listen(PORT, () => {
+// Start HTTP server with Socket.io attached
+httpServer.listen(PORT, "0.0.0.0", () => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("🚀 SOCKET.IO SERVER STARTUP - MAXIMUM LOGGING MODE");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -221,8 +223,10 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('⚠️ SIGTERM signal received: closing Socket.io server');
+  console.log('⚠️ SIGTERM signal received: closing HTTP server');
   io.close(() => {
-    console.log('✅ Socket.io server closed gracefully');
+    httpServer.close(() => {
+      console.log('✅ Server closed gracefully');
+    });
   });
 });
