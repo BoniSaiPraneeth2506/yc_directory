@@ -14,34 +14,46 @@ const allowedOrigins = process.env.CLIENT_URL
   : ["http://localhost:3000"];
 
 console.log("🔒 CORS allowed origins:", allowedOrigins);
+console.log("🌍 Environment:", process.env.NODE_ENV);
+console.log("🔌 Port:", PORT);
 
-// Create minimal HTTP server
-const httpServer = createServer((req, res) => {
-  res.writeHead(404);
-  res.end();
+// Create HTTP server with request logging
+const server = createServer((req, res) => {
+  console.log(`📨 HTTP Request: ${req.method} ${req.url}`);
+  console.log(`   Origin: ${req.headers.origin || 'none'}`);
+  
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("Socket.io server running ✅");
 });
 
-// Attach Socket.io to existing HTTP server
-const io = new Server(httpServer, {
+const io = new Server(server, {
   path: "/api/socket/io",
   cors: {
-    origin: allowedOrigins,
+    origin: allowedOrigins.length === 1 && allowedOrigins[0] === "*" 
+      ? "*" 
+      : allowedOrigins,
     methods: ["GET", "POST", "OPTIONS"],
     credentials: true,
-    allowedHeaders: ["content-type"],
+    allowedHeaders: ["Content-Type", "content-type"],
   },
   pingTimeout: 60000,
   pingInterval: 25000,
   transports: ["websocket", "polling"],
   allowEIO3: true, // Backwards compatibility
-  serveClient: false,
 });
+
+console.log("✅ Socket.io server configured");
+console.log("   Path:", "/api/socket/io");
+console.log("   CORS:", allowedOrigins);
+console.log("   Transports:", ["websocket", "polling"]);
 
 // Track online users: userId -> Set of socket IDs
 const onlineUsers = new Map();
 
 io.on("connection", (socket) => {
   console.log("✅ Socket connected:", socket.id);
+  console.log("   Handshake auth:", socket.handshake.auth);
+  console.log("   Handshake query:", socket.handshake.query);
 
   socket.on("join", (userId) => {
     if (!userId) {
@@ -89,6 +101,7 @@ io.on("connection", (socket) => {
         message: data.message,
         conversationId: data.conversationId,
       });
+      console.log(`   Notification to: ${data.recipientId}`);
     }
   });
 
@@ -125,9 +138,21 @@ io.on("connection", (socket) => {
       }
     }
   });
+
+  socket.on("error", (error) => {
+    console.error("❌ Socket error:", socket.id, error);
+  });
 });
 
-httpServer.listen(PORT, "0.0.0.0", () => {
+io.engine.on("connection_error", (err) => {
+  console.error("❌ Engine.IO connection error:");
+  console.error("   Code:", err.code);
+  console.error("   Message:", err.message);
+  console.error("   Context:", err.context);
+});
+
+// Bind to 0.0.0.0 for Railway compatibility
+server.listen(PORT, "0.0.0.0", () => {
   console.log("========================================");
   console.log("🚀 Socket.io Server Started");
   console.log("========================================");
@@ -144,16 +169,18 @@ httpServer.listen(PORT, "0.0.0.0", () => {
 // Error handling
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
+  console.error('   Stack:', error.stack);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  console.error('❌ Unhandled Rejection at:', promise);
+  console.error('   Reason:', reason);
 });
 
 // Keep process alive
 process.on('SIGTERM', () => {
-  console.log('⚠️ SIGTERM signal received: closing HTTP server');
-  httpServer.close(() => {
+  console.log(' SIGTERM signal received: closing HTTP server');
+  server.close(() => {
     console.log('HTTP server closed');
   });
 });
