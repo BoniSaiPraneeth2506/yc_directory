@@ -17,15 +17,8 @@ console.log("🔒 CORS allowed origins:", allowedOrigins);
 console.log("🌍 Environment:", process.env.NODE_ENV);
 console.log("🔌 Port:", PORT);
 
-// Create bare HTTP server WITHOUT request handler
-// Socket.io will attach its own handlers
+// Create completely bare HTTP server - ZERO interference
 const server = createServer();
-
-// Log all incoming requests at the server level
-server.on('request', (req, res) => {
-  console.log(`📨 HTTP Request: ${req.method} ${req.url}`);
-  console.log(`   Origin: ${req.headers.origin || 'none'}`);
-});
 
 const io = new Server(server, {
   path: "/api/socket/io",
@@ -48,13 +41,57 @@ console.log("   Path:", "/api/socket/io");
 console.log("   CORS:", allowedOrigins);
 console.log("   Transports:", ["websocket", "polling"]);
 
+// CRITICAL: MAXIMUM ENGINE.IO LOGGING - See EXACTLY what happens with CORS
+io.engine.on("initial_headers", (headers, request) => {
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("🔧 ENGINE.IO: INITIAL HEADERS EVENT");
+  console.log("   Request URL:", request.url);
+  console.log("   Request Method:", request.method);
+  console.log("   Origin Header:", request.headers.origin || "❌ NONE");
+  console.log("   User-Agent:", request.headers['user-agent']);
+  console.log("   All Request Headers:", JSON.stringify(request.headers, null, 2));
+  console.log("   Headers BEFORE Socket.io CORS:", JSON.stringify(headers, null, 2));
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+});
+
+io.engine.on("headers", (headers, request) => {
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("🔧 ENGINE.IO: HEADERS EVENT (ACTUAL RESPONSE)");
+  console.log("   Request URL:", request.url);
+  console.log("   Request Method:", request.method);
+  console.log("   Origin Header:", request.headers.origin || "❌ NONE");
+  console.log("   Response Headers BEING SENT:", JSON.stringify(headers, null, 2));
+  console.log("   ✅ Has Access-Control-Allow-Origin?", !!headers['access-control-allow-origin']);
+  console.log("   ✅ Access-Control-Allow-Origin Value:", headers['access-control-allow-origin'] || "❌ MISSING");
+  console.log("   ✅ Has Access-Control-Allow-Credentials?", !!headers['access-control-allow-credentials']);
+  console.log("   ✅ Access-Control-Allow-Credentials Value:", headers['access-control-allow-credentials'] || "❌ MISSING");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+});
+
+io.engine.on("connection_error", (err) => {
+  console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.error("❌ ENGINE.IO CONNECTION ERROR");
+  console.error("   Error Code:", err.code);
+  console.error("   Error Message:", err.message);
+  console.error("   Error Context:", JSON.stringify(err.context, null, 2));
+  console.error("   Full Error:", err);
+  console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+});
+
 // Track online users: userId -> Set of socket IDs
 const onlineUsers = new Map();
 
 io.on("connection", (socket) => {
-  console.log("✅ Socket connected:", socket.id);
-  console.log("   Handshake auth:", socket.handshake.auth);
-  console.log("   Handshake query:", socket.handshake.query);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("✅ SOCKET CONNECTION ESTABLISHED");
+  console.log("   Socket ID:", socket.id);
+  console.log("   Transport:", socket.conn.transport.name);
+  console.log("   Handshake Auth:", JSON.stringify(socket.handshake.auth));
+  console.log("   Handshake Query:", JSON.stringify(socket.handshake.query));
+  console.log("   Client Address:", socket.handshake.address);
+  console.log("   Headers Origin:", socket.handshake.headers.origin || "NONE");
+  console.log("   User-Agent:", socket.handshake.headers['user-agent']);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
   socket.on("join", (userId) => {
     if (!userId) {
@@ -154,17 +191,30 @@ io.engine.on("connection_error", (err) => {
 
 // Bind to 0.0.0.0 for Railway compatibility
 server.listen(PORT, "0.0.0.0", () => {
-  console.log("========================================");
-  console.log("🚀 Socket.io Server Started");
-  console.log("========================================");
-  console.log(`📡 Port: ${PORT}`);
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`🔒 CORS Origins: ${allowedOrigins.join(", ")}`);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("🚀 SOCKET.IO SERVER STARTUP - MAXIMUM LOGGING MODE");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log(`📡 Port: ${PORT} (Railway auto-assigned or default)`);
+  console.log(`🌐 Binding: 0.0.0.0 (Railway requirement)`);
+  console.log(`🏷️  Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(`📍 Socket Path: /api/socket/io`);
   console.log(`🔌 Transports: websocket, polling`);
-  console.log("========================================");
-  console.log(`✅ Ready for connections!`);
-  console.log("========================================");
+  console.log(`⏱️  Ping Timeout: 60000ms`);
+  console.log(`🏓 Ping Interval: 25000ms`);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("🔒 CORS CONFIGURATION:");
+  console.log(`   Allowed Origins (${allowedOrigins.length}):`);
+  allowedOrigins.forEach((origin, index) => {
+    console.log(`   ${index + 1}. ${origin}`);
+  });
+  console.log(`   Credentials: true`);
+  console.log(`   Methods: GET, POST, OPTIONS`);
+  console.log(`   Allowed Headers: Content-Type, content-type`);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log(`✅ Socket.io Server READY for connections!`);
+  console.log(`✅ Waiting for first connection from client...`);
+  console.log(`✅ Watch for ENGINE.IO events above when client connects`);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 });
 
 // Error handling

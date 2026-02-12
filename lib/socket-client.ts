@@ -51,6 +51,9 @@ class SocketClient {
       window.location.origin;
 
     console.log("🔌 Connecting to Socket.io server:", socketUrl);
+    console.log("   Path:", "/api/socket/io");
+    console.log("   Transports:", ["polling"]);
+    console.log("   withCredentials:", true);
 
     const socket = io(socketUrl, {
       path: "/api/socket/io",
@@ -69,17 +72,61 @@ class SocketClient {
     window.__socketClient = socket;
     window.__socketClientUserId = userId || null;
 
+    // EXTENSIVE LOGGING - Every socket event
+    socket.io.on("error", (error) => {
+      console.error("❌ Socket.IO Manager Error:", error);
+    });
+
+    socket.io.on("reconnect_attempt", (attempt) => {
+      console.log(`🔄 Reconnect attempt #${attempt}`);
+    });
+
+    socket.io.on("reconnect_error", (error) => {
+      console.error("❌ Reconnect error:", error.message);
+    });
+
+    socket.io.on("reconnect_failed", () => {
+      console.error("❌ Reconnection failed after all attempts");
+    });
+
+    socket.io.on("ping", () => {
+      console.log("🏓 Ping sent to server");
+    });
+
+    socket.io.on("open", () => {
+      console.log("✅ Transport opened");
+    });
+
+    socket.io.on("close", (reason) => {
+      console.log("🚪 Transport closed:", reason);
+    });
+
     // Set up core event handlers
     socket.on("connect", () => {
+      console.log("✅ Socket CONNECTED!");
+      console.log("   Socket ID:", socket.id);
+      console.log("   Connected:", socket.connected);
+      
       // Auto-join user room on connect
       const currentUserId = window.__socketClientUserId;
       if (currentUserId) {
+        console.log("   Joining user room:", currentUserId);
         socket.emit("join", currentUserId);
       }
     });
 
+    socket.on("disconnect", (reason) => {
+      console.log("🔌 Socket DISCONNECTED");
+      console.log("   Reason:", reason);
+      console.log("   Will reconnect:", socket.active);
+    });
+
     socket.on("connect_error", (error) => {
-      console.error("❌ Socket connection error:", error.message);
+      console.error("❌ Socket connection error:");
+      console.error("   Message:", error.message);
+      console.error("   Type:", error.type);
+      console.error("   Description:", error.description);
+      console.error("   Context:", error.context);
     });
 
     socket.on("reconnect", () => {
