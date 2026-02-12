@@ -1,7 +1,8 @@
 /**
- * BULLETPROOF Socket.io Client - Window-based persistence
- * Survives Fast Refresh by storing on window object
- * REBUILD TIMESTAMP: 2026-02-12
+ * PRODUCTION-READY Socket.io Client for Render Deployment
+ * Complete Next.js + Socket.io integration
+ * Works with server.js for persistent connections
+ * REBUILD TIMESTAMP: 2026-02-13
  */
 
 import { io, Socket } from "socket.io-client";
@@ -43,25 +44,26 @@ class SocketClient {
       return window.__socketClient;
     }
     
-    // Integrated approach: Socket.io runs on same domain as Next.js
-    // No external socket server needed - uses Next.js API route
+    // Production-ready socket connection
+    // In development: connects to localhost:3000 (server.js)
+    // In production: connects to Render deployment URL (same domain)
     const socketUrl = 
       process.env.NEXT_PUBLIC_SITE_URL || 
       window.location.origin;
 
-    console.log("🔌 Connecting to integrated Socket.io server:", socketUrl);
-    console.log("   Path:", "/api/socket/io");
-    console.log("   Transports:", ["polling"]);
-    console.log("   withCredentials:", true);
+    console.log("🚀 Connecting to production Socket.io server:", socketUrl);
+    console.log("   Path:", "/api/socket/io"); 
+    console.log("   Environment:", process.env.NODE_ENV || 'development');
+    console.log("   Transports:", ["websocket", "polling"]);
 
     const socket = io(socketUrl, {
-      path: "/api/socket/io",  // Next.js API route path
+      path: "/api/socket/io",  // Socket.io server path on same domain
       addTrailingSlash: false,
-      transports: ["polling"], // Polling only - more stable
+      transports: ["websocket", "polling"], // WebSocket first, polling fallback
       reconnection: true,
-      reconnectionDelay: 500,
-      reconnectionDelayMax: 2000,
-      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 10,
       timeout: 20000,
       autoConnect: true,
       withCredentials: true, // Required for CORS with credentials

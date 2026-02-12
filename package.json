@@ -4,11 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "node server.js",
-    "dev:next": "next dev",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
-    "start:socket": "NODE_ENV=production node socket-server.js",
-    "start:next": "next start",
     "lint": "eslint"
   },
   "packageManager": "npm@10.5.2",

@@ -4,7 +4,7 @@ const next = require("next");
 const { Server } = require("socket.io");
 
 const dev = process.env.NODE_ENV !== "production";
-const hostname = "localhost";
+const hostname = dev ? "localhost" : "0.0.0.0"; // Render needs 0.0.0.0 in production
 const port = process.env.PORT || 3000;
 
 const app = next({ dev, hostname, port });
@@ -26,7 +26,11 @@ app.prepare().then(() => {
     path: "/api/socket/io",
     addTrailingSlash: false,
     cors: {
-      origin: process.env.NEXT_PUBLIC_SITE_URL || "*",
+      origin: [
+        process.env.NEXT_PUBLIC_SITE_URL,
+        "http://localhost:3000", 
+        "http://localhost:3001"
+      ].filter(Boolean), // Remove undefined values
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -154,8 +158,13 @@ app.prepare().then(() => {
       console.error(err);
       process.exit(1);
     })
-    .listen(port, () => {
-      console.log(`> Ready on http://${hostname}:${port}`);
-      console.log(`> Socket.io server running`);
+    .listen(port, hostname, () => {
+      console.log(`🚀 Next.js + Socket.io server ready!`);
+      console.log(`📱 Frontend: http://${hostname}:${port}`);
+      console.log(`⚡ Socket.io: ${hostname}:${port}/api/socket/io`);
+      console.log(`🌍 Environment: ${dev ? 'development' : 'production'}`);
+      if (process.env.NEXT_PUBLIC_SITE_URL) {
+        console.log(`🔗 Public URL: ${process.env.NEXT_PUBLIC_SITE_URL}`);
+      }
     });
 });
