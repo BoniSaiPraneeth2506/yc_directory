@@ -17,13 +17,14 @@ console.log("🔒 CORS allowed origins:", allowedOrigins);
 console.log("🌍 Environment:", process.env.NODE_ENV);
 console.log("🔌 Port:", PORT);
 
-// Create HTTP server with request logging
-const server = createServer((req, res) => {
+// Create bare HTTP server WITHOUT request handler
+// Socket.io will attach its own handlers
+const server = createServer();
+
+// Log all incoming requests at the server level
+server.on('request', (req, res) => {
   console.log(`📨 HTTP Request: ${req.method} ${req.url}`);
   console.log(`   Origin: ${req.headers.origin || 'none'}`);
-  
-  res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end("Socket.io server running ✅");
 });
 
 const io = new Server(server, {
