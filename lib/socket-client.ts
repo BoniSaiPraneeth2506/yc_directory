@@ -62,6 +62,7 @@ class SocketClient {
       reconnectionAttempts: Infinity,
       timeout: 20000,
       autoConnect: true,
+      withCredentials: true, // Required for CORS with credentials
     });
 
     // Store on window IMMEDIATELY
