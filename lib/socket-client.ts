@@ -43,20 +43,19 @@ class SocketClient {
       return window.__socketClient;
     }
     
-    // Use NEXT_PUBLIC_SOCKET_URL for production socket server
-    // Falls back to NEXT_PUBLIC_SITE_URL or current origin
+    // Integrated approach: Socket.io runs on same domain as Next.js
+    // No external socket server needed - uses Next.js API route
     const socketUrl = 
-      process.env.NEXT_PUBLIC_SOCKET_URL || 
       process.env.NEXT_PUBLIC_SITE_URL || 
       window.location.origin;
 
-    console.log("🔌 Connecting to Socket.io server:", socketUrl);
-    console.log("   Path:", "/socket.io/ (default)");
+    console.log("🔌 Connecting to integrated Socket.io server:", socketUrl);
+    console.log("   Path:", "/api/socket/io");
     console.log("   Transports:", ["polling"]);
     console.log("   withCredentials:", true);
 
     const socket = io(socketUrl, {
-      // path: "/socket.io/",  // Use default path
+      path: "/api/socket/io",  // Next.js API route path
       addTrailingSlash: false,
       transports: ["polling"], // Polling only - more stable
       reconnection: true,
