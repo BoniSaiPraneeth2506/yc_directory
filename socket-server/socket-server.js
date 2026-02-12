@@ -3,7 +3,6 @@
  * Deploy this to Railway, Render, or Fly.io
  */
 
-const { createServer } = require("http");
 const { Server } = require("socket.io");
 
 const PORT = process.env.PORT || 3001;
@@ -15,10 +14,9 @@ const allowedOrigins = process.env.CLIENT_URL
 
 console.log("🔒 CORS allowed origins:", allowedOrigins);
 
-// Create HTTP server WITHOUT a handler - let Socket.io handle all requests
-const httpServer = createServer();
-
-const io = new Server(httpServer, {
+// Create Socket.io server
+// Socket.io creates and manages its own HTTP server when initialized without one
+const io = new Server({
   path: "/api/socket/io",
   cors: {
     origin: allowedOrigins,
@@ -30,6 +28,9 @@ const io = new Server(httpServer, {
   pingInterval: 25000,
   transports: ["websocket", "polling"],
   allowEIO3: true, // Backwards compatibility
+  serveClient: false,
+  // Add explicit handling
+  connectTimeout: 45000,
 });
 
 // Track online users: userId -> Set of socket IDs
@@ -122,7 +123,13 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(PORT, "0.0.0.0", () => {
+// Start listening - Socket.io's HTTP server listens directly
+io.listen(PORT, {
+  host: "0.0.0.0"
+});
+
+// Log startup info after starting
+setTimeout(() => {
   console.log("========================================");
   console.log("🚀 Socket.io Server Started");
   console.log("========================================");
@@ -134,7 +141,7 @@ httpServer.listen(PORT, "0.0.0.0", () => {
   console.log("========================================");
   console.log(`✅ Ready for connections!`);
   console.log("========================================");
-});
+}, 100);
 
 // Error handling
 process.on('uncaughtException', (error) => {
@@ -147,8 +154,9 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Keep process alive
 process.on('SIGTERM', () => {
-  console.log('⚠️ SIGTERM signal received: closing HTTP server');
-  httpServer.close(() => {
-    console.log('HTTP server closed');
+  console.log('⚠️ SIGTERM signal received: closing server');
+  io.close(() => {
+    console.log('Socket.io server closed');
+    process.exit(0);
   });
 });
