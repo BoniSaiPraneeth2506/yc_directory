@@ -28,17 +28,25 @@ app.prepare().then(() => {
     cors: {
       origin: process.env.NEXT_PUBLIC_SITE_URL || "*",
       methods: ["GET", "POST"],
+      credentials: true,
     },
+    pingTimeout: 60000,
+    pingInterval: 25000,
   });
 
   // Track online users: userId -> Set of socket IDs
   const onlineUsers = new Map();
 
   io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.id);
+    console.log("✅ Socket connected:", socket.id);
 
     // User joins their personal room (for receiving messages)
     socket.on("join", (userId) => {
+      if (!userId) {
+        console.warn("⚠️ Join event received without userId");
+        return;
+      }
+
       socket.join(userId);
       socket.userId = userId;
       
@@ -48,52 +56,78 @@ app.prepare().then(() => {
       }
       onlineUsers.get(userId).add(socket.id);
       
-      // Broadcast user is online
+      // Broadcast user is online to all connected clients
       io.emit("user-status", { userId, online: true });
-      console.log(`User ${userId} joined their room - Online users:`, onlineUsers.size);
+      console.log(`👤 User ${userId} joined their room (socket: ${socket.id})`);
+      console.log(`📊 Total online users: ${onlineUsers.size}, Total sockets: ${io.sockets.sockets.size}`);
     });
 
     // User joins a conversation room
     socket.on("join-conversation", (conversationId) => {
+      if (!conversationId) {
+        console.warn("⚠️ Join conversation event received without conversationId");
+        return;
+      }
       socket.join(conversationId);
-      console.log(`User joined conversation: ${conversationId}`);
+      console.log(`💬 User joined conversation: ${conversationId} (socket: ${socket.id})`);
     });
 
     // Leave conversation room
     socket.on("leave-conversation", (conversationId) => {
+      if (!conversationId) return;
       socket.leave(conversationId);
-      console.log(`User left conversation: ${conversationId}`);
+      console.log(`👋 User left conversation: ${conversationId} (socket: ${socket.id})`);
     });
 
     // Send message event
     socket.on("send-message", (data) => {
-      // Emit to conversation room
+      if (!data || !data.conversationId || !data.message) {
+        console.warn("⚠️ Invalid send-message data:", data);
+        return;
+      }
+
+      const messageType = data.message.content ? "text" : (data.message.image ? "image" : "unknown");
+      console.log(`📤 Broadcasting ${messageType} message ${data.message._id} to conversation: ${data.conversationId}`);
+      if (messageType === "image") {
+        console.log(`  📷 Image URL:`, data.message.image?.url);
+      }
+      
+      // Emit to conversation room (for real-time chat window updates)
       socket.to(data.conversationId).emit("new-message", data.message);
-      // Also emit to recipient's personal room for notifications
-      socket.to(data.recipientId).emit("message-notification", {
-        conversationId: data.conversationId,
-        message: data.message,
-      });
+      console.log(`  ↳ Sent to conversation room: ${data.conversationId}`);
+      
+      // Also emit to recipient's personal room for notifications and chat list updates
+      if (data.recipientId) {
+        socket.to(data.recipientId).emit("message-notification", {
+          conversationId: data.conversationId,
+          message: data.message,
+        });
+        console.log(`  ↳ Sent notification to user: ${data.recipientId}`);
+      }
     });
 
     // Typing indicator
     socket.on("typing", (data) => {
+      if (!data || !data.conversationId) return;
       socket.to(data.conversationId).emit("user-typing", {
         userId: data.userId,
         isTyping: data.isTyping,
       });
+      console.log(`⌨️  Typing indicator: ${data.userId} is ${data.isTyping ? 'typing' : 'stopped typing'} in ${data.conversationId}`);
     });
 
     // Mark messages as read
     socket.on("mark-read", (data) => {
+      if (!data || !data.conversationId) return;
       socket.to(data.conversationId).emit("messages-read", {
         userId: data.userId,
         conversationId: data.conversationId,
       });
+      console.log(`✅ Messages marked as read by ${data.userId} in ${data.conversationId}`);
     });
 
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected:", socket.id);
+    socket.on("disconnect", (reason) => {
+      console.log("❌ Socket disconnected:", socket.id, "| Reason:", reason);
       
       // Remove user from online tracking
       if (socket.userId) {
@@ -105,9 +139,12 @@ app.prepare().then(() => {
           if (userSockets.size === 0) {
             onlineUsers.delete(socket.userId);
             io.emit("user-status", { userId: socket.userId, online: false });
-            console.log(`User ${socket.userId} is now offline - Online users:`, onlineUsers.size);
+            console.log(`👤 User ${socket.userId} is now offline`);
+          } else {
+            console.log(`👤 User ${socket.userId} still has ${userSockets.size} active connection(s)`);
           }
         }
+        console.log(`📊 Total online users: ${onlineUsers.size}, Total sockets: ${io.sockets.sockets.size}`);
       }
     });
   });

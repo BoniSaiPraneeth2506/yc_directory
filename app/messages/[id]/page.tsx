@@ -63,7 +63,7 @@ export default async function ConversationPage({
   return (
     <div className="h-screen bg-white-100 flex flex-col">
       {/* Header - Fixed at very top of device */}
-      <ChatHeader otherUser={otherUser} />
+      <ChatHeader otherUser={otherUser} currentUserId={session.id} />
 
       {/* Chat Window with proper spacing for fixed header */}
       <div className="flex-1 overflow-hidden" style={{marginTop: '64px'}}>

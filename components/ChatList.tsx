@@ -32,33 +32,43 @@ type Conversation = {
 export function ChatList({ currentUserId }: { currentUserId: string }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
-  const { socket, onlineUsers } = useSocket();
+  const { socket, onlineUsers, isConnected } = useSocket();
 
   useEffect(() => {
+    console.log("📋 ChatList mounted, current user:", currentUserId);
     loadConversations();
   }, []);
 
   useEffect(() => {
     if (socket && currentUserId) {
-      socket.emit("join", currentUserId);
+      console.log("🔗 Setting up ChatList socket listeners for user:", currentUserId);
 
-      // Listen for new messages
-      socket.on("message-notification", (data: any) => {
+      // Listen for new messages - this will update the conversation list
+      const handleMessageNotification = (data: any) => {
+        console.log("📬 New message notification received in ChatList:", data);
+        // Reload conversations to get updated last message
         loadConversations();
-      });
+      };
+
+      socket.on("message-notification", handleMessageNotification);
+      socket.on("new-message", handleMessageNotification);
 
       return () => {
-        socket.off("message-notification");
+        console.log("🔌 Cleaning up ChatList socket listeners");
+        socket.off("message-notification", handleMessageNotification);
+        socket.off("new-message", handleMessageNotification);
       };
     }
-  }, [socket, currentUserId]);
+  }, [socket, currentUserId, isConnected]);
 
   const loadConversations = async () => {
     try {
+      console.log("📥 Loading conversations for user:", currentUserId);
       const data = await getUserConversations();
+      console.log("✅ Loaded", data.length, "conversations");
       setConversations(data);
     } catch (error) {
-      console.error("Error loading conversations:", error);
+      console.error("❌ Error loading conversations:", error);
     } finally {
       setLoading(false);
     }

@@ -57,36 +57,65 @@ export function ChatWindow({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { socket } = useSocket();
+  const { socket, isConnected } = useSocket();
 
   useEffect(() => {
+    console.log("📬 Loading messages for conversation:", conversationId);
     loadMessages();
   }, [conversationId]);
 
   useEffect(() => {
     if (socket && conversationId) {
+      console.log("🔗 ChatWindow: Joining conversation room:", conversationId);
+      console.log("   Socket ID:", socket.id, "| Connected:", socket.connected);
       socket.emit("join-conversation", conversationId);
 
-      socket.on("new-message", (message: Message) => {
-        setMessages((prev) => [...prev, message]);
-        scrollToBottom();
-        // Mark as read and notify sender
-        handleMarkAsRead();
-      });
+      // Handler for receiving new messages
+      const handleNewMessage = (message: Message) => {
+        console.log("📨 ChatWindow: Received new-message event");
+        console.log("   Message ID:", message._id);
+        console.log("   Message Type:", message.content ? "text" : "image");
+        console.log("   From:", message.sender._id);
+        console.log("   Image URL:", message.image?.url);
+        console.log("   Current user:", currentUserId);
+        
+        setMessages((prev) => {
+          // Check if message already exists to prevent duplicates
+          if (prev.some(m => m._id === message._id)) {
+            console.log("⚠️ DUPLICATE: Message already exists in state, skipping");
+            return prev;
+          }
+          console.log("✅ NEW: Adding message to state");
+          return [...prev, message];
+        });
+        
+        setTimeout(scrollToBottom, 100);
+        
+        // Mark as read if message is from other user
+        if (message.sender._id !== currentUserId) {
+          console.log("👁️ Message from other user, marking as read");
+          markAsReadAsync();
+        } else {
+          console.log("📤 Message from current user, not marking as read");
+        }
+      };
 
-      // Listen for typing indicators
-      socket.on("user-typing", ({ userId, isTyping: typing }: { userId: string; isTyping: boolean }) => {
+      // Handler for typing indicators
+      const handleUserTyping = ({ userId, isTyping: typing }: { userId: string; isTyping: boolean }) => {
         if (userId === otherUser._id) {
+          console.log("⌨️ Other user typing status:", typing);
           setOtherUserTyping(typing);
         }
-      });
+      };
 
-      // Listen for read receipts
-      socket.on("messages-read", ({ userId, conversationId: readConvId }: { userId: string; conversationId: string }) => {
+      // Handler for read receipts
+      const handleMessagesRead = ({ userId, conversationId: readConvId }: { userId: string; conversationId: string }) => {
+        console.log("✅ Messages marked as read by:", userId, "in conversation:", readConvId);
         if (userId === otherUser._id && readConvId === conversationId) {
           setMessages(prev => 
             prev.map(msg => {
               if (msg.sender._id === currentUserId && !msg.readBy?.some(reader => reader._id === otherUser._id)) {
+                console.log("✅ Updating read status for message:", msg._id);
                 return {
                   ...msg,
                   readBy: [...(msg.readBy || []), { _id: otherUser._id }]
@@ -96,16 +125,21 @@ export function ChatWindow({
             })
           );
         }
-      });
+      };
+
+      socket.on("new-message", handleNewMessage);
+      socket.on("user-typing", handleUserTyping);
+      socket.on("messages-read", handleMessagesRead);
 
       return () => {
+        console.log("🔌 Leaving conversation room:", conversationId);
         socket.emit("leave-conversation", conversationId);
-        socket.off("new-message");
-        socket.off("user-typing");
-        socket.off("messages-read");
+        socket.off("new-message", handleNewMessage);
+        socket.off("user-typing", handleUserTyping);
+        socket.off("messages-read", handleMessagesRead);
       };
     }
-  }, [socket, conversationId]);
+  }, [socket, conversationId, currentUserId, otherUser._id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -164,11 +198,11 @@ export function ChatWindow({
     }
   };
 
-  const handleMarkAsRead = async () => {
+  const markAsReadAsync = async () => {
     try {
       await markMessagesAsRead(conversationId);
       
-      if (socket) {
+      if (socket && socket.connected) {
         socket.emit("mark-read", {
           conversationId,
           userId: currentUserId,
@@ -180,8 +214,11 @@ export function ChatWindow({
   };
 
   useEffect(() => {
-    // Mark messages as read when component mounts or messages change
-    handleMarkAsRead();
+    // Mark messages as read when component mounts
+    if (conversationId) {
+      markAsReadAsync();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
   // Cleanup typing timeout on unmount
@@ -205,18 +242,50 @@ export function ChatWindow({
     handleStopTyping();
 
     try {
+      console.log("📤 ChatWindow: Sending message...");
+      console.log("   Content:", messageText.substring(0, 20) + "...");
+      console.log("   Conversation ID:", conversationId);
+      console.log("   Recipient ID:", otherUser._id);
+      
       const message = await sendMessage(conversationId, messageText);
-      setMessages((prev) => [...prev, message]);
+      console.log("✅ ChatWindow: Message saved to database");
+      console.log("   Message ID:", message._id);
+      console.log("   Created At:", message.createdAt);
+      
+      // Add message to local state immediately
+      setMessages((prev) => {
+        // Check if message already exists to prevent duplicates
+        if (prev.some(m => m._id === message._id)) {
+          console.log("⚠️ Message already in state, skipping local add");
+          return prev;
+        }
+        console.log("✅ Adding message to local state immediately");
+        return [...prev, message];
+      });
 
-      if (socket) {
+      // Emit via socket for real-time delivery
+      if (socket && socket.connected) {
+        console.log("📡 ChatWindow: Broadcasting via socket");
+        console.log("   Socket ID:", socket.id);
+        console.log("   Socket connected:", socket.connected);
+        console.log("   Sending to conversation:", conversationId);
+        console.log("   Notifying recipient:", otherUser._id);
+        
         socket.emit("send-message", {
           conversationId,
-          message,
+        message,
           recipientId: otherUser._id,
         });
+        console.log("✅ Socket emit completed");
+      } else {
+        console.warn("⚠️ SOCKET NOT CONNECTED!");
+        console.warn("   Socket exists:", !!socket);
+        console.warn("   Socket connected:", socket?.connected);
       }
+
+      setTimeout(scrollToBottom, 100);
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("❌ ChatWindow: Error sending message:", error);
       setNewMessage(messageText);
     } finally {
       setSending(false);
@@ -249,6 +318,7 @@ export function ChatWindow({
     setUploadingImage(true);
 
     try {
+      console.log("📤 Uploading image...");
       const formData = new FormData();
       formData.append("file", file);
       formData.append(
@@ -269,19 +339,33 @@ export function ChatWindow({
       const data = await response.json();
       const imageUrl = data.secure_url;
 
+      console.log("✅ Image uploaded:", imageUrl);
+
       // Send message with image
       const message = await sendMessage(conversationId, undefined, imageUrl);
-      setMessages((prev) => [...prev, message]);
+      console.log("✅ Image message saved to database:", message._id);
+      
+      // Add message to local state
+      setMessages((prev) => {
+        if (prev.some(m => m._id === message._id)) {
+          return prev;
+        }
+        return [...prev, message];
+      });
 
-      if (socket) {
+      // Emit via socket
+      if (socket && socket.connected) {
+        console.log("📡 Broadcasting image message via socket");
         socket.emit("send-message", {
           conversationId,
           message,
           recipientId: otherUser._id,
         });
       }
+
+      setTimeout(scrollToBottom, 100);
     } catch (error) {
-      console.error("Error uploading image:", error);
+      console.error("❌ Error uploading image:", error);
       alert("Failed to upload image. Please try again.");
     } finally {
       setUploadingImage(false);

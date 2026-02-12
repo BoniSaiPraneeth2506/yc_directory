@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
   // Compression & Optimization
   compress: true,
   poweredByHeader: false,
-  reactStrictMode: true,
+  reactStrictMode: false, // Disabled for socket.io real-time connections
   experimental: {
     optimizeServerReact: true,
     memoryBasedWorkersCount: true,

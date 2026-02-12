@@ -5,6 +5,8 @@ import 'easymde/dist/easymde.min.css'
 import { SanityLive } from "@/sanityio/lib/live";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { SocketProvider } from "@/components/providers/SocketProvider";
+import { auth } from "@/auth";
 
 
 const workSans = localFont({
@@ -63,18 +65,22 @@ export const metadata: Metadata = {
   description: "Pitch, Vote and Grow",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+  
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={workSans.variable}>
         <ThemeProvider>
-          {children}
-          <SanityLive />
-          <Toaster />
+          <SocketProvider userId={session?.id || null}>
+            {children}
+            <SanityLive />
+            <Toaster />
+          </SocketProvider>
         </ThemeProvider>
       </body>
     </html>

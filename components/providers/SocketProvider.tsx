@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { io as ClientIO, Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
+import { socketClient } from "@/lib/socket-client";
 
 type SocketContextType = {
   socket: Socket | null;
@@ -24,46 +25,40 @@ export const SocketProvider = ({
   userId 
 }: { 
   children: React.ReactNode;
-  userId: string | null;
+  userId?: string | null;
 }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
+  // Initialize socket ONCE using singleton
   useEffect(() => {
-    // Initialize socket connection
-    const socketUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
+    console.log("🎬 SocketProvider useEffect RUNNING");
+    console.log("   userId:", userId);
+    
+    const socketInstance = socketClient.initialize(userId);
+    console.log("   socketInstance returned:", !!socketInstance);
+    console.log("   socketInstance.id:", socketInstance.id);
+    console.log("   socketInstance.connected:", socketInstance.connected);
+    
+    setSocket(socketInstance);
+    setIsConnected(socketInstance.connected);
 
-    const socketInstance = ClientIO(socketUrl, {
-      path: "/api/socket/io",
-      addTrailingSlash: false,
-      transports: ["websocket", "polling"],
-    });
-
-    socketInstance.on("connect", () => {
-      console.log("Socket connected");
+    // Set up event listeners for this provider instance
+    const handleConnect = () => {
+      console.log("✅ Provider: Socket connected");
       setIsConnected(true);
-      
-      // Join user's personal room if userId is available
-      if (userId) {
-        socketInstance.emit("join", userId);
-      }
-    });
+    };
 
-    socketInstance.on("disconnect", () => {
-      console.log("Socket disconnected");
+    const handleDisconnect = (reason: string) => {
+      console.log("❌ Provider: Socket disconnected:", reason);
+      console.log("🔍 Provider disconnect STACK TRACE:");
+      console.trace();
       setIsConnected(false);
-    });
+    };
 
-    socketInstance.on("connect_error", (error) => {
-      console.error("Socket connection error:", error);
-      setIsConnected(false);
-    });
-
-    // Listen for user status updates
-    socketInstance.on("user-status", ({ userId: statusUserId, online }: { userId: string; online: boolean }) => {
+    const handleUserStatus = ({ userId: statusUserId, online }: { userId: string; online: boolean }) => {
+      console.log("👁️ Provider: User status update:", statusUserId, online ? "online" : "offline");
       setOnlineUsers((prev) => {
         const newSet = new Set(prev);
         if (online) {
@@ -71,16 +66,36 @@ export const SocketProvider = ({
         } else {
           newSet.delete(statusUserId);
         }
+        console.log("   Online users count:", newSet.size);
         return newSet;
       });
-    });
+    };
 
-    setSocket(socketInstance);
+    console.log("👂 Attaching event listeners to socket");
+    socketInstance.on("connect", handleConnect);
+    socketInstance.on("disconnect", handleDisconnect);
+    socketInstance.on("user-status", handleUserStatus);
+    console.log("✅ Event listeners attached");
 
     return () => {
-      socketInstance.disconnect();
+      console.log("🧹 SocketProvider cleanup - removing listeners ONLY (keeping socket alive)");
+      console.log("   Socket ID:", socketInstance.id);
+      console.log("   Socket connected:", socketInstance.connected);
+      socketInstance.off("connect", handleConnect);
+      socketInstance.off("disconnect", handleDisconnect);
+      socketInstance.off("user-status", handleUserStatus);
+      console.log("✅ Listeners removed, socket still alive");
+      // DON'T disconnect socket - just remove this instance's listeners
     };
-  }, [userId]);
+  }, []); // ONLY run once on mount
+
+  // Handle userId updates
+  useEffect(() => {
+    if (userId && socket) {
+      console.log("🔄 UserId changed, re-initializing with:", userId);
+      socketClient.initialize(userId);
+    }
+  }, [userId, socket]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected, onlineUsers }}>
