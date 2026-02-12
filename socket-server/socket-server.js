@@ -15,19 +15,17 @@ const allowedOrigins = process.env.CLIENT_URL
 
 console.log("🔒 CORS allowed origins:", allowedOrigins);
 
-// Create HTTP server WITHOUT a request handler
-// Let Socket.io attach its handlers first
-const server = createServer();
+// Socket.io will handle all requests - no HTTP handler needed
+const { Server: HttpServer } = require("http");
+const httpServer = new HttpServer();
 
-const io = new Server(server, {
+const io = new Server(httpServer, {
   path: "/api/socket/io",
   cors: {
-    origin: allowedOrigins.length === 1 && allowedOrigins[0] === "*" 
-      ? "*" 
-      : allowedOrigins,
-    methods: ["GET", "POST"],
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "OPTIONS"],
     credentials: true,
-    allowedHeaders: ["Content-Type"],
+    allowedHeaders: ["content-type"],
   },
   pingTimeout: 60000,
   pingInterval: 25000,
@@ -125,17 +123,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Add health check handler for non-Socket.io paths
-// Socket.io handles /api/socket/io automatically
-server.on('request', (req, res) => {
-  // Socket.io already handled its paths, this only catches others
-  if (!req.url?.startsWith("/api/socket/io")) {
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("Socket.io server running ✅");
-  }
-});
-
-server.listen(PORT, "0.0.0.0", () => {
+httpServer.listen(PORT, "0.0.0.0", () => {
   console.log("========================================");
   console.log("🚀 Socket.io Server Started");
   console.log("========================================");
@@ -161,7 +149,7 @@ process.on('unhandledRejection', (reason, promise) => {
 // Keep process alive
 process.on('SIGTERM', () => {
   console.log('⚠️ SIGTERM signal received: closing HTTP server');
-  server.close(() => {
+  httpServer.close(() => {
     console.log('HTTP server closed');
   });
 });
