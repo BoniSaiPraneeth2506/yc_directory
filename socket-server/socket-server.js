@@ -15,6 +15,7 @@ const allowedOrigins = process.env.CLIENT_URL
 console.log("🔒 CORS allowed origins:", allowedOrigins);
 console.log("🌍 Environment:", process.env.NODE_ENV);
 console.log("🔌 Port:", PORT);
+console.log("⚡ FORCED REDEPLOY - Fixing Railway auto-deploy issue");
 
 // Let Socket.io create and manage its own HTTP server
 const io = new Server({
