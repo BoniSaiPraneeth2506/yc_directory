@@ -16,7 +16,12 @@ const allowedOrigins = process.env.CLIENT_URL
 console.log("🔒 CORS allowed origins:", allowedOrigins);
 
 const server = createServer((req, res) => {
-  // Handle CORS for all HTTP requests
+  // Let Socket.io handle its own paths
+  if (req.url.startsWith('/api/socket/io')) {
+    return; // Don't handle Socket.io paths here
+  }
+  
+  // Handle CORS for all other HTTP requests
   const origin = req.headers.origin;
   
   if (origin && (allowedOrigins.includes(origin) || allowedOrigins.includes("*"))) {
@@ -33,7 +38,7 @@ const server = createServer((req, res) => {
     return;
   }
   
-  // Regular request
+  // Regular request (only for non-Socket.io paths)
   res.writeHead(200, { "Content-Type": "text/plain" });
   res.end("Socket.io server running ✅");
 });
