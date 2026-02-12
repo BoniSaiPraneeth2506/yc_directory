@@ -20,16 +20,15 @@ console.log("⚡ FORCED REDEPLOY - Fixing Railway auto-deploy issue");
 
 // Create HTTP server and attach Socket.io (proper pattern)
 const httpServer = createServer((req, res) => {
-  // Basic health check endpoint
+  // ONLY handle health check endpoints - let Socket.io handle everything else
   if (req.url === '/' || req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('Socket.io server is running!\nPath: /api/socket/io\nStatus: OK');
     return;
   }
   
-  // Let Socket.io handle all other requests
-  res.writeHead(404, { 'Content-Type': 'text/plain' });
-  res.end('Socket.io server - Use /api/socket/io for connections');
+  // Let Socket.io handle /api/socket/io and all other paths
+  // Don't respond here - let Socket.io middleware handle it
 });
 
 const io = new Server(httpServer, {
