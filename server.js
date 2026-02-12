@@ -60,7 +60,12 @@ app.prepare().then(() => {
       }
       onlineUsers.get(userId).add(socket.id);
       
-      // Broadcast user is online to all connected clients
+      // Send current online users list to the joining user
+      const currentOnlineUsers = Array.from(onlineUsers.keys());
+      socket.emit("online-users", currentOnlineUsers);
+      console.log(`📤 Sent online users list to ${userId}:`, currentOnlineUsers);
+      
+      // Broadcast this user is online to all other connected clients
       io.emit("user-status", { userId, online: true });
       console.log(`👤 User ${userId} joined their room (socket: ${socket.id})`);
       console.log(`📊 Total online users: ${onlineUsers.size}, Total sockets: ${io.sockets.sockets.size}`);

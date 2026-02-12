@@ -60,14 +60,21 @@ export const SocketProvider = ({
       });
     };
 
+    const handleOnlineUsers = (userIds: string[]) => {
+      console.log("📋 Received online users list:", userIds);
+      setOnlineUsers(new Set(userIds));
+    };
+
     socketInstance.on("connect", handleConnect);
     socketInstance.on("disconnect", handleDisconnect);
     socketInstance.on("user-status", handleUserStatus);
+    socketInstance.on("online-users", handleOnlineUsers);
 
     return () => {
       socketInstance.off("connect", handleConnect);
       socketInstance.off("disconnect", handleDisconnect);
       socketInstance.off("user-status", handleUserStatus);
+      socketInstance.off("online-users", handleOnlineUsers);
     };
   }, []); // ONLY run once on mount
 
