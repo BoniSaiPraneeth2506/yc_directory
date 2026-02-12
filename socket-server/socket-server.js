@@ -143,13 +143,6 @@ io.on("connection", (socket) => {
   });
 });
 
-io.engine.on("connection_error", (err) => {
-  console.error("❌ Engine.IO connection error:");
-  console.error("   Code:", err.code);
-  console.error("   Message:", err.message);
-  console.error("   Context:", err.context);
-});
-
 // Let Socket.io listen and create the HTTP server
 io.listen(PORT, () => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
